@@ -11,13 +11,14 @@
   const GID_PRECIOS    = "1086284473";   // Precio
   const GID_INVENTARIO = "1787664807";   // Inventario
   const GID_FOTOS      = "0";            // Hoja 1 (fotos / nombre / sublínea)
-  const COL_PRECIO    = "Oferta Costa 1";
-  const COL_DESCUENTO = "Dcto Costa 1";
-  const COL_CANTIDAD  = "Libre utilización";
-  const COL_TIENDA    = "Nombre 1";
-  const COL_NOMBRE    = "Nombre";
-  const COL_SUBLINEA  = "Sublinea";
-  const COL_FOTO      = "Foto";
+  const COL_LISTA     = "Lista Costa 1";         // precio ANTES (hoja Precio)
+  const COL_PRECIO    = "Oferta Costa 1";        // precio AHORA (hoja Precio)
+  const COL_DESCUENTO = "Dcto Costa 1";          // % descuento (hoja Precio)
+  const COL_CANTIDAD  = "Libre utilización";     // hoja Inventario
+  const COL_TIENDA    = "Nombre 1";              // hoja Inventario
+  const COL_NOMBRE    = "Nombre";                // Hoja 1
+  const COL_SUBLINEA  = "Sublinea";              // Hoja 1
+  const COL_FOTO      = "Foto";                  // Hoja 1
   function urlCSV(gid){ return "https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/export?format=csv&gid="+gid; }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -35,24 +36,34 @@
   header h1{font-size:1.55rem;letter-spacing:.3px}
   header p{font-size:.9rem;opacity:.92;margin-top:4px}
   .wrap{max-width:1200px;margin:0 auto;padding:0 16px}
+  .stats{display:flex;gap:16px;justify-content:space-around;background:#fff;border:1px solid var(--border);border-radius:var(--r-md);margin:16px 0 0;padding:18px 16px;text-align:center;flex-wrap:wrap;box-shadow:var(--shadow-sm)}
+  .stat{flex:1;min-width:110px}
+  .stat b{display:block;font-size:1.8rem;font-weight:800;color:var(--texto);line-height:1.1}
+  .stat span{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
   .tabs{margin:18px auto 0;display:flex;gap:8px}
   .tab{flex:1;padding:13px;border:1px solid var(--border);border-bottom:none;border-radius:var(--r-md) var(--r-md) 0 0;background:#efefec;color:#555;font-size:1rem;font-weight:700;cursor:pointer;transition:.15s}
   .tab small{display:block;font-weight:500;font-size:.76rem;opacity:.85}
   .tab.activo{background:var(--rojo);color:#fff;border-color:var(--rojo)}
   .controles{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--border);border-top:none;padding:12px 14px}
-  .controles input{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.95rem;background:#fff;color:var(--texto)}
-  .controles input:focus{outline:none;border-color:var(--rojo);box-shadow:0 0 0 3px var(--rojo-soft)}
+  .controles input.buscar{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:.95rem;background:#fff;color:var(--texto)}
+  .controles input.buscar:focus{outline:none;border-color:var(--rojo);box-shadow:0 0 0 3px var(--rojo-soft)}
   .ms{position:relative}
-  .ms-btn{padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-sm);background:#fff;font-size:.92rem;font-family:inherit;color:var(--texto);cursor:pointer;min-width:200px;text-align:left;display:flex;justify-content:space-between;gap:8px;align-items:center}
-  .ms-btn:hover{border-color:var(--rojo)}
-  .ms-panel{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:280px;max-height:320px;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:8px}
+  .ms-btn{padding:10px 14px;border:1px solid var(--rojo);border-radius:var(--r-sm);background:#fff;font-size:.95rem;font-weight:600;font-family:inherit;color:var(--texto);cursor:pointer;min-width:220px;text-align:left;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .ms-btn:hover{background:var(--rojo-soft)}
+  .ms-panel{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:320px;max-width:92vw;max-height:380px;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:10px}
   .ms-panel[hidden]{display:none}
-  .ms-panel label{display:flex;align-items:center;gap:9px;padding:8px;border-radius:6px;font-size:.9rem;cursor:pointer}
+  .ms-search{width:100%;padding:10px 12px;border:1px solid var(--rojo);border-radius:var(--r-sm);font-size:.9rem;margin-bottom:6px;font-family:inherit}
+  .ms-search:focus{outline:none;box-shadow:0 0 0 3px var(--rojo-soft)}
+  .ms-all{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:6px;cursor:pointer;font-weight:700;margin-bottom:2px}
+  .ms-all.on{background:var(--rojo-soft);color:var(--rojo)}
+  .ms-all .chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;flex:none}
+  .ms-all.on .chk{background:var(--rojo);border-color:var(--rojo)}
+  .ms-panel label{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:6px;font-size:.92rem;cursor:pointer}
   .ms-panel label:hover{background:var(--rojo-soft)}
-  .ms-panel input{width:16px;height:16px;accent-color:var(--rojo)}
-  .ms-acc{display:flex;gap:8px;justify-content:space-between;padding:8px 6px 4px;border-top:1px solid var(--border);margin-top:6px;position:sticky;bottom:0;background:#fff}
-  .ms-acc button{flex:1;border:1px solid var(--border);background:#fff;border-radius:6px;padding:8px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
-  .ms-acc .prim{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+  .ms-panel label input{width:18px;height:18px;accent-color:var(--rojo);flex:none}
+  .ms-acc{display:flex;gap:8px;justify-content:space-between;padding:10px 4px 2px;border-top:1px solid var(--border);margin-top:8px;position:sticky;bottom:0;background:#fff}
+  .ms-acc button{border:none;background:#fff;color:var(--muted);border-radius:6px;padding:9px 14px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
+  .ms-acc .prim{background:var(--rojo);color:#fff;padding:9px 22px}
   .barra{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-top:none;padding:10px 14px}
   .conteo{font-size:.85rem;color:var(--muted)} .conteo strong{color:var(--texto)}
   .switch{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
@@ -87,6 +98,7 @@
   table.tabla tbody tr:nth-child(even){background:#faf8f6}
   table.tabla tbody tr:hover{background:var(--rojo-soft)}
   table.tabla td.nombre{font-weight:600;max-width:240px;white-space:normal}
+  table.tabla td.antes{color:var(--muted);text-decoration:line-through}
   table.tabla td.precio{font-weight:700;color:var(--rojo)}
   table.tabla td.dcto{font-weight:700}
   table.tabla .tfoto{width:42px;height:42px;object-fit:cover;border-radius:6px;background:#f5f5f2}
@@ -121,6 +133,7 @@
   @media(max-width:600px){
     .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     .tab{font-size:.85rem}
+    .stat b{font-size:1.4rem}
     .pagination{gap:10px;padding:14px 4px}
     .page-btn{padding:9px 12px;font-size:13px}
     .ms-btn{min-width:100%}
@@ -133,18 +146,25 @@
   <p>disponibilidad por tienda</p>
 </header>
 <div class="wrap">
+  <div class="stats">
+    <div class="stat"><b id="stProd">—</b><span>Productos en evacuación</span></div>
+    <div class="stat"><b id="stTie">—</b><span>Almacenes</span></div>
+    <div class="stat"><b id="stUni">—</b><span>Unidades en stock</span></div>
+  </div>
   <div class="tabs">
     <button class="tab activo" id="tabAlto" onclick="cambiarTab('alto')">Liquidación 60% <small>60% o más</small></button>
     <button class="tab" id="tabBajo" onclick="cambiarTab('bajo')">Liquidación 30% <small>otros descuentos</small></button>
   </div>
   <div class="controles">
-    <input id="buscar" type="text" placeholder="Buscar por nombre o código...">
+    <input id="buscar" class="buscar" type="text" placeholder="Buscar por nombre o código...">
     <div class="ms">
-      <button class="ms-btn" id="msBtn" onclick="toggleMS(event)"><span id="msLabel">Todos los almacenes</span><span>▾</span></button>
+      <button class="ms-btn" id="msBtn" onclick="toggleMS(event)"><span id="msLabel">Todas las tiendas</span><span>▾</span></button>
       <div class="ms-panel" id="msPanel" hidden>
+        <input class="ms-search" id="msSearch" type="text" placeholder="Escribe para buscar tienda..." oninput="filtrarMS()">
+        <div class="ms-all on" id="msAll" onclick="limpiarMS()"><span class="chk">✓</span> Todas las tiendas</div>
         <div id="msLista"></div>
         <div class="ms-acc">
-          <button onclick="limpiarMS()">Limpiar</button>
+          <button onclick="limpiarMS()">Limpiar selección</button>
           <button class="prim" onclick="toggleMS()">Listo</button>
         </div>
       </div>
@@ -232,13 +252,13 @@ function tarjeta(p){
 
 function tablaHTML(lista){
   const cols = SELEC.size ? [...SELEC].sort() : ALMACENES;
-  let head='<thead><tr><th class="izq">Foto</th><th class="izq">Código</th><th class="izq">Producto</th><th class="izq">Sublínea</th><th>Precio</th><th>% Dcto</th><th>Inv. total</th>'+cols.map(a=>'<th class="alm">'+esc(a)+'</th>').join('')+'</tr></thead>';
+  let head='<thead><tr><th class="izq">Foto</th><th class="izq">Código</th><th class="izq">Producto</th><th class="izq">Sublínea</th><th>Antes</th><th>Ahora</th><th>% Dcto</th><th>Inv. total</th>'+cols.map(a=>'<th class="alm">'+esc(a)+'</th>').join('')+'</tr></thead>';
   let body='<tbody>'+lista.map(p=>{
     const iv=invVisible(p);
     const celdas=cols.map(a=>{const q=p.tiendas[a]||0; return '<td class="'+(q>0?'hay':'cero')+'">'+(q>0?miles(q):'0')+'</td>';}).join('');
     return '<tr><td><img class="tfoto" src="'+esc(p.foto)+'" loading="lazy" onerror="this.onerror=null;this.src=window.IMG_GEN"></td>'+
       '<td class="izq">'+esc(p.codigo)+'</td><td class="izq nombre">'+esc(p.nombre)+'</td><td class="izq">'+esc(p.sublinea||'')+'</td>'+
-      '<td class="precio">'+(pesos(p.ahora)||'—')+'</td><td class="dcto">'+(p.desc?('-'+p.desc+'%'):'')+'</td>'+
+      '<td class="antes">'+(pesos(p.antes)||'')+'</td><td class="precio">'+(pesos(p.ahora)||'—')+'</td><td class="dcto">'+(p.desc?('-'+p.desc+'%'):'')+'</td>'+
       '<td class="suma" onclick="abrirDisp(\''+esc(p.codigo)+'\')" title="Ver disponibilidad">'+miles(iv.total)+'</td>'+celdas+'</tr>';
   }).join('')+'</tbody>';
   return '<div class="tablaWrap"><table class="tabla">'+head+body+'</table></div>';
@@ -259,10 +279,20 @@ function abrirDisp(cod){
 function cerrarModal(){ document.getElementById('modal').hidden=true; }
 
 function toggleMS(e){ if(e) e.stopPropagation(); const pan=document.getElementById('msPanel'); pan.hidden=!pan.hidden; }
-function actualizarMSLabel(){ const n=SELEC.size; document.getElementById('msLabel').textContent = n===0?'Todos los almacenes':(n+(n===1?' almacén':' almacenes')); }
-function onCheck(t,checked){ if(checked) SELEC.add(t); else SELEC.delete(t); actualizarMSLabel(); pagina=1; pintar(); }
-function limpiarMS(){ SELEC.clear(); document.querySelectorAll('#msLista input').forEach(c=>c.checked=false); actualizarMSLabel(); pagina=1; pintar(); }
+function actualizarMS(){ const n=SELEC.size; document.getElementById('msLabel').textContent = n===0?'Todas las tiendas':(n+(n===1?' almacén':' almacenes')); document.getElementById('msAll').classList.toggle('on',n===0); }
+function onCheck(t,checked){ if(checked) SELEC.add(t); else SELEC.delete(t); actualizarMS(); pagina=1; pintar(); }
+function limpiarMS(){ SELEC.clear(); document.querySelectorAll('#msLista input').forEach(c=>c.checked=false); actualizarMS(); pagina=1; pintar(); }
+function filtrarMS(){ const q=document.getElementById('msSearch').value.toLowerCase().trim(); document.querySelectorAll('#msLista label').forEach(l=>{ l.style.display = l.textContent.toLowerCase().includes(q)?'flex':'none'; }); }
 function llenarTiendas(){ document.getElementById('msLista').innerHTML = ALMACENES.map(t=>'<label><input type="checkbox" value="'+esc(t)+'" onchange="onCheck(this.value,this.checked)">'+esc(t)+'</label>').join(''); }
+
+function renderStats(){
+  const vistos={}; TODOS.forEach(p=>{ if(vistos[p.codigo]==null) vistos[p.codigo]=p.inv; });
+  const prod=Object.keys(vistos).length;
+  const uni=Object.values(vistos).reduce((a,b)=>a+(b||0),0);
+  document.getElementById('stProd').textContent=miles(prod);
+  document.getElementById('stTie').textContent=miles(ALMACENES.length);
+  document.getElementById('stUni').textContent=miles(uni);
+}
 
 function filtrar(){
   const q=document.getElementById('buscar').value.toLowerCase().trim();
@@ -304,7 +334,7 @@ function cargar(){
     const liq60=res[0],liq30=res[1],prec=res[2],inv=res[3],fotos=res[4];
     const mPrec={};
     prec.rows.forEach(r=>{ const c=codigo(prec.code?r[prec.code]:Object.values(r)[0]); if(!c) return;
-      mPrec[c]={precio:num(campo(r,COL_PRECIO,'Oferta Costa 1','Precio','Oferta')),dcto:descPct(num(campo(r,COL_DESCUENTO,'Dcto Costa 1','Descuento','Dcto'))),nombre:campo(r,'Nombre Producto','Nombre del producto','Nombre')}; });
+      mPrec[c]={lista:num(campo(r,COL_LISTA,'Lista Costa 1','Lista')),precio:num(campo(r,COL_PRECIO,'Oferta Costa 1','Precio','Oferta')),dcto:descPct(num(campo(r,COL_DESCUENTO,'Dcto Costa 1','Descuento','Dcto'))),nombre:campo(r,'Nombre Producto','Nombre del producto','Nombre')}; });
     const mFoto={};
     fotos.rows.forEach(r=>{ const c=codigo(fotos.code?r[fotos.code]:Object.values(r)[0]); if(!c) return;
       mFoto[c]={nombre:campo(r,COL_NOMBRE,'Nombre'),sublinea:campo(r,COL_SUBLINEA,'Sublinea','Sublínea','Sub linea'),foto:campo(r,COL_FOTO,'Foto','Imagen','Image')}; });
@@ -319,11 +349,11 @@ function cargar(){
       const pr=mPrec[c]||{},fo=mFoto[c]||{},iv=mInv[c]||{total:0,tiendas:{}};
       const nombre=fo.nombre||pr.nombre||campo(r,'NOMBRE DEL PRODUCTO','Nombre del producto','Nombre')||c;
       const ahora=pr.precio||0,dcto=pr.dcto||0;
-      const antes=(ahora&&dcto>0&&dcto<100)?ahora/(1-dcto/100):0;
+      const antes=(pr.lista&&pr.lista>0)?pr.lista:((ahora&&dcto>0&&dcto<100)?ahora/(1-dcto/100):0);
       return {codigo:c,nombre,sublinea:fo.sublinea||'',foto:urlFoto(fo.foto),ahora,antes,desc:dcto,inv:iv.total,tiendas:iv.tiendas,origen}; }).filter(Boolean); }
     TODOS=construir(liq60,'alto').concat(construir(liq30,'bajo'));
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector" y que los gid sean correctos.'; return; }
-    llenarTiendas(); pintar();
+    llenarTiendas(); renderStats(); pintar();
   });
 }
 
