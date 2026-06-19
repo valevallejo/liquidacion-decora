@@ -74,6 +74,8 @@
   .pop-acc{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--border);margin-top:8px;padding-top:8px;position:sticky;bottom:0;background:#fff}
   .pop-acc button{border:none;background:none;color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;padding:7px 8px;border-radius:6px}
   .pop-acc .prim{background:var(--rojo);color:#fff;padding:7px 18px}
+  .tb-sel{padding:8px 12px;border:1px solid var(--border);border-radius:20px;background:#fff;font-size:.85rem;font-family:inherit;color:var(--texto);cursor:pointer}
+  .tb-sel:focus{outline:none;border-color:var(--rojo);box-shadow:0 0 0 3px var(--rojo-soft)}
   .spacer{flex:1}
   .switch{display:inline-flex;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;background:#fff}
   .switch button{border:none;background:#fff;color:var(--muted);padding:7px 13px;font-size:.82rem;font-weight:500;cursor:pointer;font-family:inherit}
@@ -163,8 +165,8 @@
 
   <div class="stickybar">
     <div class="tabs">
-      <button class="tab activo" id="tabAlto" onclick="cambiarTab('alto')">LR TARDIA + SLOB <small>(60% O MAS)</small></button>
-      <button class="tab" id="tabBajo" onclick="cambiarTab('bajo')">LR TEMPRANA <small>otros descuentos</small></button>
+      <button class="tab activo" id="tabAlto" onclick="cambiarTab('alto')">Liquidación 60% <small>60% o más</small></button>
+      <button class="tab" id="tabBajo" onclick="cambiarTab('bajo')">Liquidación 30% <small>otros descuentos</small></button>
     </div>
     <div class="toolbar">
       <input id="buscar" class="tb-search" type="text" placeholder="Buscar producto... (ej: blanco bombillo)">
@@ -184,6 +186,14 @@
           <div class="pop-acc"><button onclick="limpiarMS()">Limpiar</button><button class="prim" onclick="cerrarPops()">Listo</button></div>
         </div>
       </div>
+      <select id="orden" class="tb-sel" onchange="cambiarOrden(this.value)">
+        <option value="">Ordenar por…</option>
+        <option value="inv-desc">Inventario: mayor a menor</option>
+        <option value="inv-asc">Inventario: menor a mayor</option>
+        <option value="precio-desc">Precio: mayor a menor</option>
+        <option value="precio-asc">Precio: menor a mayor</option>
+        <option value="dcto-desc">% Descuento: mayor a menor</option>
+      </select>
       <span class="spacer"></span>
       <span class="switch">
         <button id="btnTarjetas" class="on" onclick="cambiarVista('tarjetas')">Tarjetas</button>
@@ -208,7 +218,7 @@
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[];
 let SELEC=new Set(), SELSUB=new Set();
-let tabActual='alto', vista='tarjetas', pagina=1;
+let tabActual='alto', vista='tarjetas', pagina=1, orden='';
 const PAGE_SIZE=36;
 const IMG_GENERICA='data:image/svg+xml;utf8,'+encodeURIComponent(
  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'>"+
@@ -306,8 +316,20 @@ function filtrar(){
   if(SELSUB.size) lista=lista.filter(p=>SELSUB.has(p.sublinea));
   if(sel.length) lista=lista.filter(p=>sel.some(t=>(p.tiendas[t]||0)>0));
   if(q) lista=lista.filter(p=>coincide(p,q));
+  if(orden){
+    const inv=p=>invVisible(p).total;
+    const cmp={
+      'inv-desc':(a,b)=>inv(b)-inv(a),
+      'inv-asc':(a,b)=>inv(a)-inv(b),
+      'precio-desc':(a,b)=>b.ahora-a.ahora,
+      'precio-asc':(a,b)=>a.ahora-b.ahora,
+      'dcto-desc':(a,b)=>b.desc-a.desc
+    }[orden];
+    if(cmp) lista=lista.slice().sort(cmp);
+  }
   return lista;
 }
+function cambiarOrden(v){ orden=v; pagina=1; pintar(); }
 function pintar(){
   const lista=filtrar();
   const cont=document.getElementById('contenido'), est=document.getElementById('estado'), total=lista.length;
