@@ -186,6 +186,15 @@
     .pop .checklist label{padding:11px 8px;font-size:.95rem}
     .pop .checklist input{width:20px;height:20px}
     .pop-acc .prim{padding:10px 26px}
+    /* Tabla de seguimiento en móvil: solo columnas clave, sin desplazar */
+    table.seg th:nth-child(2),table.seg td:nth-child(2),
+    table.seg th:nth-child(4),table.seg td:nth-child(4){display:none}
+    table.seg th,table.seg td{padding:11px 8px}
+    table.seg .bar{display:none}
+    table.seg .pctxt{margin-left:0}
+    .subwrap{margin-left:12px}
+    table.subt th,table.subt td{padding:9px 10px}
+    .subt .ir{display:block;margin-left:0;margin-top:2px}
   }
 </style>
 </head>
