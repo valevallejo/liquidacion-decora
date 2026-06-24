@@ -381,8 +381,29 @@ function filtrar(){
 }
 function cambiarOrden(v){ orden=v; pagina=1; pintar(); }
 
+// Recordar la vista/filtros entre recargas (por dispositivo)
+function guardarEstado(){
+  try{ localStorage.setItem('decora_estado', JSON.stringify({
+    seccion, orden, pagina,
+    q: document.getElementById('buscar').value,
+    sel:[...SELEC], sub:[...SELSUB], tag:[...SELTAG]
+  })); }catch(e){}
+}
+function restaurarEstado(){
+  try{
+    const s=JSON.parse(localStorage.getItem('decora_estado')||'null'); if(!s) return;
+    SELEC=new Set(s.sel||[]); SELSUB=new Set(s.sub||[]); SELTAG=new Set(s.tag||[]);
+    orden=s.orden||''; pagina=s.pagina||1;
+    const o=document.getElementById('orden'); if(o) o.value=orden;
+    document.getElementById('buscar').value=s.q||'';
+    syncChecks();
+    seccion=(s.seccion==='seguimiento')?'seguimiento':'productos';
+  }catch(e){}
+}
+
 function pintar(){
   avisoFiltro();
+  guardarEstado();
   if(seccion==='seguimiento'){ pintarSeguimiento(); return; }
   const lista=filtrar();
   const cont=document.getElementById('contenido'), est=document.getElementById('estado'), total=lista.length;
@@ -510,7 +531,7 @@ function cargar(){
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector".'; return; }
     mkList('msLista',ALMACENES,'onCheck'); mkList('subLista',SUBLINEAS,'onCheckSub'); mkList('tagLista',ALLTAGS,'onCheckTag');
     if(ALLTAGS.length===0) document.getElementById('chipTag').style.display='none';
-    updateChips(); pintar();
+    restaurarEstado(); updateChips(); cambiarSeccion(seccion);
   });
 }
 
