@@ -128,7 +128,7 @@
   .seg-card span{font-size:.72rem;color:var(--muted)}
   .seg-hint{font-size:.78rem;color:var(--muted);margin:0 2px 8px}
   .seg-scroll{border:1px solid var(--border);border-radius:var(--r);background:#fff;overflow:hidden}
-  table.seg{border-collapse:separate;border-spacing:0;width:100%;font-size:.86rem;background:#fff}
+  table.seg{border-collapse:separate;border-spacing:0;width:100%;font-size:.86rem;background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
   table.seg th,table.seg td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
   table.seg th:first-child,table.seg td:first-child{text-align:left}
   table.seg thead th{background:#fff;color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
@@ -430,7 +430,7 @@ function detalleRows(t, idx){
   return rows.map(r=>'<tr class="seg-sub" data-of="'+idx+'" hidden onclick="verProductos(\''+arg(t)+'\',\''+arg(r.s)+'\')" title="Ver estos productos">'+
     '<td class="subname">↳ '+esc(r.s)+'<span class="ir">ver ›</span></td>'+
     '<td>'+miles(r.b)+'</td><td>'+miles(r.a)+'</td><td>'+miles(r.ev)+'</td>'+
-    '<td>'+(r.b>0?(r.pct+'%'):'—')+'</td></tr>').join('');
+    '<td>'+(r.b>0?('<span class="bar"><i style="width:'+r.pct+'%"></i></span><span class="pctxt">'+r.pct+'%</span>'):'—')+'</td></tr>').join('');
 }
 function toggleSeg(row){
   const i=row.getAttribute('data-i');
@@ -468,9 +468,7 @@ function pintarSeguimiento(){
     '<tr class="seg-row" data-i="'+idx+'" onclick="toggleSeg(this)"><td><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td><td>'+miles(f.base)+'</td><td>'+miles(f.act)+'</td><td>'+miles(f.evac)+'</td><td><span class="bar"><i style="width:'+f.pct+'%"></i></span><span class="pctxt">'+f.pct+'%</span></td></tr>'+
     detalleRows(f.t, idx)
   ).join('');
-  html+='<div class="seg-scroll"><table class="seg"><thead><tr><th>Almacén / sublínea</th><th>Inv. base</th><th>Inv. actual</th><th>Evacuadas</th><th>% avance</th></tr></thead><tbody>'+
-    cuerpo+
-    '</tbody><tfoot><tr><td>Total</td><td>'+miles(tBase)+'</td><td>'+miles(tAct)+'</td><td>'+miles(tEvac)+'</td><td>'+pctG+'%</td></tr></tfoot></table></div>';
+  html+='<table class="seg"><thead><tr><th>Almacén / sublínea</th><th>Inv. base</th><th>Inv. actual</th><th>Evacuadas</th><th>% avance</th></tr></thead><tbody>'+cuerpo+'</tbody></table>';
   cont.innerHTML=html;
 }
 
