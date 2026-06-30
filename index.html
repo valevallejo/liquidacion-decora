@@ -6,13 +6,12 @@
 <title>Liquidación Decora</title>
 <script>
   const SHEET_ID = "1Zvf017OwhwKMb7_0NEKvhU0PnegumNCLUilMh63pM7U";
-  const GID_PRODUCTOS  = "488240662";    // Liquidación 60% = lista maestra (Tags + Sublinea)
-  const GID_PROD_EXTRA = "911640390";    // Liquidación 30% (transitoria; al eliminarla, deja "")
-  const GID_PRECIOS    = "1086284473";   // Precio
-  const GID_INVENTARIO = "1787664807";   // Inventario actual
-  const GID_FOTOS      = "0";            // Hoja 1
-  const GID_BASE       = "2071290547";   // Hoja "Base" (inventario inicial)
-
+  const GID_PRODUCTOS  = "488240662";
+  const GID_PROD_EXTRA = "911640390";
+  const GID_PRECIOS    = "1086284473";
+  const GID_INVENTARIO = "1787664807";
+  const GID_FOTOS      = "0";
+  const GID_BASE       = "2071290547";
   const COL_LISTA     = "Lista Costa 1";
   const COL_PRECIO    = "Oferta Costa 1";
   const COL_DESCUENTO = "Dcto Costa 1";
@@ -128,34 +127,27 @@
   .seg-card b{display:block;font-size:1.5rem;font-weight:700;letter-spacing:-.5px}
   .seg-card span{font-size:.72rem;color:var(--muted)}
   .seg-hint{font-size:.78rem;color:var(--muted);margin:0 2px 8px}
-  table.seg{border-collapse:separate;border-spacing:0;width:100%;font-size:.86rem;background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-  table.seg th,table.seg td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:right}
+  .seg-scroll{max-height:74vh;overflow:auto;border:1px solid var(--border);border-radius:var(--r);background:#fff}
+  table.seg{border-collapse:separate;border-spacing:0;width:100%;font-size:.86rem;background:#fff}
+  table.seg th,table.seg td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
   table.seg th:first-child,table.seg td:first-child{text-align:left}
-  table.seg thead th{background:#fff;color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px}
-  table.seg tfoot td{font-weight:700;border-top:2px solid var(--rojo);background:#FFF7F8}
+  table.seg thead th{position:sticky;top:0;z-index:3;background:#fff;color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;box-shadow:inset 0 -1px 0 var(--border)}
+  table.seg tfoot td{position:sticky;bottom:0;z-index:3;font-weight:700;background:#FFF7F8;box-shadow:inset 0 1px 0 var(--rojo)}
   table.seg tbody tr.seg-row{cursor:pointer}
   table.seg tbody tr.seg-row:hover td{background:var(--rojo-soft)}
+  table.seg tbody tr.seg-row.abierto td{position:sticky;top:40px;z-index:2;background:#FFF7F8;box-shadow:inset 0 -1px 0 var(--border)}
   .seg .caret{display:inline-block;transition:transform .15s;margin-right:9px;color:var(--rojo);font-size:.8rem}
   table.seg tbody tr.seg-row.abierto .caret{transform:rotate(90deg)}
   .seg .alm-name{font-weight:700;color:var(--texto)}
   table.seg tbody tr.seg-row:hover .alm-name{color:var(--rojo);text-decoration:underline}
-  table.seg tbody tr.seg-det>td{background:#FAFAF8;padding:0}
-  .subwrap{margin:0 0 4px 26px;border-left:3px solid #F1C6CD;padding:4px 0 8px}
-  .subcap{font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700;padding:9px 16px 5px}
-  table.subt{width:100%;border-collapse:collapse;font-size:.82rem;background:transparent}
-  table.subt th,table.subt td{padding:9px 16px;border-bottom:1px solid #EFEFEC;text-align:right}
-  table.subt th:first-child,table.subt td:first-child{text-align:left;color:var(--texto)}
-  table.subt thead th{color:var(--muted);font-weight:600;font-size:.66rem;text-transform:uppercase;letter-spacing:.3px}
-  table.subt tbody tr.subt-row{cursor:pointer}
-  table.subt tbody tr.subt-row:hover td{background:#fff;color:var(--rojo)}
-  table.subt tbody tr.subt-row:hover td:first-child{font-weight:600}
-  table.subt tbody tr:last-child td{border-bottom:none}
-  .subt .ir{color:#C9CDD3;font-size:.72rem;margin-left:8px}
-  table.subt tbody tr.subt-row:hover .ir{color:var(--rojo)}
-  .seg-empty{padding:14px 16px;color:var(--muted)}
-  .bar{position:relative;height:8px;background:#EEF1F4;border-radius:5px;overflow:hidden;min-width:90px;display:inline-block;vertical-align:middle}
+  table.seg tbody tr.seg-sub td{background:#FBFAF8;font-size:.82rem;color:#555}
+  table.seg tbody tr.seg-sub:hover td{background:var(--rojo-soft);color:var(--rojo)}
+  .seg .subname{padding-left:30px;font-weight:500;color:var(--texto)}
+  .seg .ir{color:#C9CDD3;font-size:.72rem;margin-left:8px}
+  table.seg tbody tr.seg-sub:hover .ir{color:var(--rojo)}
+  .seg-empty{color:var(--muted);text-align:left}
+  .bar{position:relative;height:8px;background:#EEF1F4;border-radius:5px;overflow:hidden;min-width:80px;display:inline-block;vertical-align:middle}
   .bar>i{position:absolute;left:0;top:0;bottom:0;background:var(--high);border-radius:5px}
-  .bar.mini{min-width:60px;height:6px}
   .pctxt{font-weight:600;margin-left:8px}
   .seg-info{background:#fff;border:1px dashed var(--border);border-radius:var(--r);padding:24px;color:var(--muted);text-align:center;line-height:1.6}
   .seg-info b{color:var(--texto)}
@@ -178,7 +170,6 @@
     .head-txt h1{font-size:1.3rem}
     .navtabs{gap:18px}
     .navtab{font-size:.88rem}
-    /* En móvil los filtros se abren como lámina inferior, sobre la pantalla */
     .pop-back{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:39}
     .pop-back[hidden]{display:none}
     .pop{position:fixed;left:10px;right:10px;bottom:10px;top:auto;width:auto;max-width:none;max-height:78vh;border-radius:16px;padding:14px 14px 10px;box-shadow:0 -6px 30px rgba(0,0,0,.28)}
@@ -186,15 +177,13 @@
     .pop .checklist label{padding:11px 8px;font-size:.95rem}
     .pop .checklist input{width:20px;height:20px}
     .pop-acc .prim{padding:10px 26px}
-    /* Tabla de seguimiento en móvil: solo columnas clave, sin desplazar */
+    /* Tabla de seguimiento en móvil: solo columnas clave (Almacén/Sublínea, Inv. actual, % avance) */
     table.seg th:nth-child(2),table.seg td:nth-child(2),
     table.seg th:nth-child(4),table.seg td:nth-child(4){display:none}
     table.seg th,table.seg td{padding:11px 8px}
     table.seg .bar{display:none}
     table.seg .pctxt{margin-left:0}
-    .subwrap{margin-left:12px}
-    table.subt th,table.subt td{padding:9px 10px}
-    .subt .ir{display:block;margin-left:0;margin-top:2px}
+    .seg .subname{padding-left:18px}
   }
 </style>
 </head>
@@ -276,7 +265,7 @@
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
 let seccion='productos', pagina=1, orden='';
-let INVACT={}, INVBASE={}, BASE_OK=false;
+let INVACT={}, INVBASE={}, INVACT_SUB={}, INVBASE_SUB={}, BASE_OK=false;
 const PAGE_SIZE=36;
 const IMG_GENERICA='data:image/svg+xml;utf8,'+encodeURIComponent(
  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'>"+
@@ -364,6 +353,26 @@ function avisoFiltro(){
   } else { av.classList.remove('on'); av.innerHTML=''; }
 }
 
+function cambiarOrden(v){ orden=v; pagina=1; pintar(); }
+
+function guardarEstado(){
+  try{ localStorage.setItem('decora_estado', JSON.stringify({
+    seccion, orden, pagina, q: document.getElementById('buscar').value,
+    sel:[...SELEC], sub:[...SELSUB], tag:[...SELTAG]
+  })); }catch(e){}
+}
+function restaurarEstado(){
+  try{
+    const s=JSON.parse(localStorage.getItem('decora_estado')||'null'); if(!s) return;
+    SELEC=new Set(s.sel||[]); SELSUB=new Set(s.sub||[]); SELTAG=new Set(s.tag||[]);
+    orden=s.orden||''; pagina=s.pagina||1;
+    const o=document.getElementById('orden'); if(o) o.value=orden;
+    document.getElementById('buscar').value=s.q||'';
+    syncChecks();
+    seccion=(s.seccion==='seguimiento')?'seguimiento':'productos';
+  }catch(e){}
+}
+
 function filtrar(){
   const q=document.getElementById('buscar').value.trim();
   const sel=[...SELEC];
@@ -378,27 +387,6 @@ function filtrar(){
     if(cmp) lista=lista.slice().sort(cmp);
   }
   return lista;
-}
-function cambiarOrden(v){ orden=v; pagina=1; pintar(); }
-
-// Recordar la vista/filtros entre recargas (por dispositivo)
-function guardarEstado(){
-  try{ localStorage.setItem('decora_estado', JSON.stringify({
-    seccion, orden, pagina,
-    q: document.getElementById('buscar').value,
-    sel:[...SELEC], sub:[...SELSUB], tag:[...SELTAG]
-  })); }catch(e){}
-}
-function restaurarEstado(){
-  try{
-    const s=JSON.parse(localStorage.getItem('decora_estado')||'null'); if(!s) return;
-    SELEC=new Set(s.sel||[]); SELSUB=new Set(s.sub||[]); SELTAG=new Set(s.tag||[]);
-    orden=s.orden||''; pagina=s.pagina||1;
-    const o=document.getElementById('orden'); if(o) o.value=orden;
-    document.getElementById('buscar').value=s.q||'';
-    syncChecks();
-    seccion=(s.seccion==='seguimiento')?'seguimiento':'productos';
-  }catch(e){}
 }
 
 function pintar(){
@@ -432,19 +420,25 @@ function renderPaginacion(total,totalPag,ini){
 }
 function irAPagina(n){ pagina=n; pintar(); window.scrollTo({top:0,behavior:'smooth'}); }
 
-function detalleSublinea(t){
-  const m={}; let tot=0;
-  TODOS.forEach(p=>{ const q=p.tiendas[t]||0; if(q>0){ const s=p.sublinea||'(Sin sublínea)'; m[s]=(m[s]||0)+q; tot+=q; } });
-  const arr=Object.entries(m).sort((a,b)=>b[1]-a[1]);
-  if(!arr.length) return '<div class="seg-empty">Sin inventario actual en este almacén.</div>';
-  const filas=arr.map(e=>{ const pct=tot>0?Math.round(e[1]/tot*100):0;
-    return '<tr class="subt-row" onclick="verProductos(\''+arg(t)+'\',\''+arg(e[0])+'\')" title="Ver estos productos">'+
-      '<td>'+esc(e[0])+'<span class="ir">ver productos ›</span></td><td>'+miles(e[1])+'</td>'+
-      '<td><span class="bar mini"><i style="width:'+pct+'%"></i></span><span class="pctxt">'+pct+'%</span></td></tr>'; }).join('');
-  return '<div class="subwrap"><div class="subcap">Inventario por sublínea en '+esc(t)+'</div>'+
-    '<table class="subt"><thead><tr><th>Sublínea</th><th>Unidades</th><th>Participación</th></tr></thead><tbody>'+filas+'</tbody></table></div>';
+// filas de detalle por sublínea (base vs actual = avance)
+function detalleRows(t, idx){
+  const baseS=INVBASE_SUB[t]||{}, actS=INVACT_SUB[t]||{};
+  const subs=[...new Set(Object.keys(baseS).concat(Object.keys(actS)))];
+  const rows=subs.map(s=>{ const b=baseS[s]||0, a=actS[s]||0, ev=Math.max(0,b-a), pct=b>0?Math.round(ev/b*100):0; return {s,b,a,ev,pct}; });
+  rows.sort((x,y)=> (y.ev-x.ev) || (y.b-x.b));
+  if(!rows.length) return '<tr class="seg-sub" data-of="'+idx+'" hidden><td colspan="5" class="seg-empty subname">Sin datos por sublínea.</td></tr>';
+  return rows.map(r=>'<tr class="seg-sub" data-of="'+idx+'" hidden onclick="verProductos(\''+arg(t)+'\',\''+arg(r.s)+'\')" title="Ver estos productos">'+
+    '<td class="subname">↳ '+esc(r.s)+'<span class="ir">ver ›</span></td>'+
+    '<td>'+miles(r.b)+'</td><td>'+miles(r.a)+'</td><td>'+miles(r.ev)+'</td>'+
+    '<td>'+(r.b>0?(r.pct+'%'):'—')+'</td></tr>').join('');
 }
-function toggleSeg(row){ const det=row.nextElementSibling; if(det&&det.classList.contains('seg-det')){ det.hidden=!det.hidden; row.classList.toggle('abierto',!det.hidden); } }
+function toggleSeg(row){
+  const i=row.getAttribute('data-i');
+  const det=document.querySelectorAll('.seg-sub[data-of="'+i+'"]');
+  let mostrar=null;
+  det.forEach(d=>{ if(mostrar===null) mostrar=d.hidden; d.hidden=!mostrar; });
+  row.classList.toggle('abierto', !!mostrar);
+}
 
 function verProductos(t,sub){
   SELEC=new Set([t]); SELSUB=new Set([sub]);
@@ -457,7 +451,7 @@ function pintarSeguimiento(){
   const cont=document.getElementById('contenido');
   document.getElementById('estado').style.display='none'; document.getElementById('paginacion').hidden=true;
   if(!BASE_OK){
-    cont.innerHTML='<div class="seg-info">Para activar el <b>Seguimiento de evacuación</b>:<br>1) En tu Google Sheet crea una pestaña <b>Base</b> con el inventario inicial (mismo formato que Inventario: código en la 1ª columna, almacén y cantidad).<br>2) Comparte la hoja y listo: aquí verás cuántas unidades se han evacuado y el % de avance por tienda.</div>';
+    cont.innerHTML='<div class="seg-info">Para activar el <b>Seguimiento de evacuación</b>:<br>1) En tu Google Sheet crea una pestaña <b>Base</b> con el inventario inicial (mismo formato que Inventario: código en la 1ª columna, almacén y cantidad).<br>2) Comparte la hoja y listo: aquí verás cuántas unidades se han evacuado y el % de avance por tienda y por sublínea.</div>';
     return;
   }
   const filas=ALMACENES.map(t=>{ const base=INVBASE[t]||0, act=INVACT[t]||0, evac=Math.max(0,base-act); const pct=base>0?Math.round(evac/base*100):0; return {t,base,act,evac,pct}; });
@@ -469,11 +463,14 @@ function pintarSeguimiento(){
     '<div class="seg-card"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas</span></div>'+
     '<div class="seg-card"><b>'+pctG+'%</b><span>Avance de evacuación</span></div>'+
     '<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual</span></div></div>';
-  html+='<div class="seg-hint">Ordenado por inventario actual. Haz clic en un almacén para ver el desglose por sublínea, y en una sublínea para ver esos productos.</div>';
-  html+='<table class="seg"><thead><tr><th>Almacén</th><th>Inv. base</th><th>Inv. actual</th><th>Evacuadas</th><th>% avance</th></tr></thead><tbody>'+
-    filas.map(f=>'<tr class="seg-row" onclick="toggleSeg(this)"><td><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td><td>'+miles(f.base)+'</td><td>'+miles(f.act)+'</td><td>'+miles(f.evac)+'</td><td><span class="bar"><i style="width:'+f.pct+'%"></i></span><span class="pctxt">'+f.pct+'%</span></td></tr>'+
-      '<tr class="seg-det" hidden><td colspan="5">'+detalleSublinea(f.t)+'</td></tr>').join('')+
-    '</tbody><tfoot><tr><td>Total</td><td>'+miles(tBase)+'</td><td>'+miles(tAct)+'</td><td>'+miles(tEvac)+'</td><td>'+pctG+'%</td></tr></tfoot></table>';
+  html+='<div class="seg-hint">Ordenado por inventario actual. Haz clic en un almacén para ver el avance por sublínea, y en una sublínea para ver esos productos.</div>';
+  const cuerpo=filas.map((f,idx)=>
+    '<tr class="seg-row" data-i="'+idx+'" onclick="toggleSeg(this)"><td><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td><td>'+miles(f.base)+'</td><td>'+miles(f.act)+'</td><td>'+miles(f.evac)+'</td><td><span class="bar"><i style="width:'+f.pct+'%"></i></span><span class="pctxt">'+f.pct+'%</span></td></tr>'+
+    detalleRows(f.t, idx)
+  ).join('');
+  html+='<div class="seg-scroll"><table class="seg"><thead><tr><th>Almacén / sublínea</th><th>Inv. base</th><th>Inv. actual</th><th>Evacuadas</th><th>% avance</th></tr></thead><tbody>'+
+    cuerpo+
+    '</tbody><tfoot><tr><td>Total</td><td>'+miles(tBase)+'</td><td>'+miles(tAct)+'</td><td>'+miles(tEvac)+'</td><td>'+pctG+'%</td></tr></tfoot></table></div>';
   cont.innerHTML=html;
 }
 
@@ -519,13 +516,17 @@ function cargar(){
     agregar(prod1); agregar(prod2);
     SUBLINEAS=[...setSub].sort(); ALLTAGS=[...setTag].sort();
 
-    const codSet={}; TODOS.forEach(p=>codSet[p.codigo]=1);
-    INVACT={}; TODOS.forEach(p=>{ Object.entries(p.tiendas).forEach(e=>{ INVACT[e[0]]=(INVACT[e[0]]||0)+e[1]; }); });
-    INVBASE={}; let baseRows=0;
+    const codSet={}, codSub={};
+    TODOS.forEach(p=>{ codSet[p.codigo]=1; codSub[p.codigo]=p.sublinea||'(Sin sublínea)'; });
+    // inventario ACTUAL por tienda y por (tienda, sublínea)
+    INVACT={}; INVACT_SUB={};
+    TODOS.forEach(p=>{ const s=p.sublinea||'(Sin sublínea)'; Object.entries(p.tiendas).forEach(e=>{ const t=e[0],q=e[1]; if(q>0){ INVACT[t]=(INVACT[t]||0)+q; (INVACT_SUB[t]=INVACT_SUB[t]||{}); INVACT_SUB[t][s]=(INVACT_SUB[t][s]||0)+q; } }); });
+    // inventario BASE por tienda y por (tienda, sublínea)
+    INVBASE={}; INVBASE_SUB={}; let baseRows=0;
     base.rows.forEach(r=>{ const c=codigo(base.code?r[base.code]:Object.values(r)[0]); if(!c||!codSet[c]) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
-      if(t){ INVBASE[t]=(INVBASE[t]||0)+q; baseRows++; } });
+      if(t){ INVBASE[t]=(INVBASE[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVBASE_SUB[t]=INVBASE_SUB[t]||{}); INVBASE_SUB[t][s]=(INVBASE_SUB[t][s]||0)+q; baseRows++; } });
     BASE_OK = baseRows>0;
 
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector".'; return; }
