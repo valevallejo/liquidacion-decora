@@ -329,7 +329,14 @@ function _renderTarjeta(card){
     const wrap=document.createElement('div');
     wrap.style.cssText='position:fixed;left:-10000px;top:0;width:380px;background:#fff';
     wrap.appendChild(clone); document.body.appendChild(wrap);
-    html2canvas(clone,{scale:3,useCORS:true,backgroundColor:'#ffffff'}).then(function(c){ wrap.remove(); resolve(c); }).catch(function(e){ wrap.remove(); reject(e); });
+    const imgs=[].slice.call(clone.querySelectorAll('img'));
+    imgs.forEach(function(im){ im.removeAttribute('loading'); });
+    Promise.all(imgs.map(function(im){
+      if(im.complete && im.naturalWidth>0) return Promise.resolve();
+      return new Promise(function(res){ im.onload=res; im.onerror=res; setTimeout(res,4000); });
+    })).then(function(){
+      return html2canvas(clone,{scale:3,useCORS:true,backgroundColor:'#ffffff',logging:false});
+    }).then(function(c){ wrap.remove(); resolve(c); }).catch(function(e){ wrap.remove(); reject(e); });
   });
 }
 function compartirTarjeta(e,btn){
