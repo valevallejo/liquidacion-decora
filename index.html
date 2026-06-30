@@ -324,6 +324,7 @@ function _renderTarjeta(card){
     const clone=card.cloneNode(true);
     clone.querySelectorAll('.dl-btn').forEach(function(x){x.remove();});
     const loc=clone.querySelector('.card-loc'); if(loc) loc.remove();
+    const vl=clone.querySelector('.verloc'); if(vl) vl.remove();
     clone.querySelectorAll('.pill').forEach(function(x){ x.textContent=x.textContent.replace('\u25BE','').replace('\u25BC','').trim(); });
     clone.style.width='380px'; clone.style.margin='0'; clone.style.boxShadow='none';
     const wrap=document.createElement('div');
