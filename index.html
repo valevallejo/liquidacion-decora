@@ -114,7 +114,7 @@
   .ahora{color:var(--rojo);font-weight:700;font-size:1.05rem}
   .verloc{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:.76rem;color:var(--muted);border:none;border-top:1px solid var(--border);padding:8px 0 0;margin-top:3px;cursor:pointer;background:none;width:100%;font-family:inherit;text-align:left}
   .verloc:hover{color:var(--rojo)}
-  .verloc .pill{padding:1px 8px;border-radius:6px;font-weight:600;font-size:.72rem}
+  .verloc .pill{padding:1px 8px;border-radius:6px;font-weight:600;font-size:.72rem;white-space:nowrap}
   .pill.high{background:var(--high-bg);color:var(--high)}
   .pill.low{background:var(--low-bg);color:var(--low)}
   .pill.zero{background:#f3f4f6;color:var(--muted)}
@@ -169,7 +169,7 @@
   footer{text-align:center;padding:24px;color:var(--muted);font-size:.78rem}
 
   @media(max-width:600px){
-    .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px}
     .head-txt h1{font-size:1.3rem}
     .navtabs{gap:18px}
     .navtab{font-size:.88rem}
@@ -308,7 +308,7 @@ function locHTML(p){ const ent=tiendasDe(p); if(!ent.length) return '<div class=
 function tarjeta(p){
   const iv=invVisible(p);
   const etiqueta=iv.n?(iv.n+(iv.n===1?' almacén':' almacenes')):'Sin stock';
-  return '<div class="card"><div class="foto">'+(p.desc?'<span class="badge">-'+p.desc+'%</span>':'')+'<button class="dl-btn" onclick="descargarTarjeta(event,this)" data-cod="'+esc(p.codigo)+'" title="Descargar imagen">'+ICONO_DL+'</button>'+
+  return '<div class="card"><div class="foto">'+(p.desc?'<span class="badge">-'+p.desc+'%</span>':'')+'<button class="dl-btn" onclick="compartirTarjeta(event,this)" data-cod="'+esc(p.codigo)+'" title="Compartir / descargar">'+ICONO_DL+'</button>'+
     '<img src="'+esc(p.foto)+'" alt="'+esc(p.nombre)+'" loading="lazy" onerror="this.onerror=null;this.src=window.IMG_GEN"></div>'+
     '<div class="info"><div class="nombre">'+esc(p.nombre)+'</div>'+
     (p.sublinea?'<div class="sub">'+esc(p.sublinea)+'</div>':'')+
@@ -319,15 +319,36 @@ function tarjeta(p){
     locHTML(p)+'</div></div>';
 }
 function toggleLoc(btn){ const d=btn.nextElementSibling; if(d&&d.classList.contains('card-loc')) d.hidden=!d.hidden; }
-function descargarTarjeta(e,btn){
+function _renderTarjeta(card){
+  return new Promise(function(resolve,reject){
+    const clone=card.cloneNode(true);
+    clone.querySelectorAll('.dl-btn').forEach(function(x){x.remove();});
+    const loc=clone.querySelector('.card-loc'); if(loc) loc.remove();
+    clone.querySelectorAll('.pill').forEach(function(x){ x.textContent=x.textContent.replace('\u25BE','').replace('\u25BC','').trim(); });
+    clone.style.width='380px'; clone.style.margin='0'; clone.style.boxShadow='none';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:-10000px;top:0;width:380px;background:#fff';
+    wrap.appendChild(clone); document.body.appendChild(wrap);
+    html2canvas(clone,{scale:3,useCORS:true,backgroundColor:'#ffffff'}).then(function(c){ wrap.remove(); resolve(c); }).catch(function(e){ wrap.remove(); reject(e); });
+  });
+}
+function compartirTarjeta(e,btn){
   e.stopPropagation();
   if(typeof html2canvas==='undefined'){ alert('El módulo de imagen aún está cargando, intenta de nuevo en unos segundos.'); return; }
-  const card=btn.closest('.card'); const loc=card.querySelector('.card-loc'); const prev=loc?loc.hidden:true; if(loc) loc.hidden=true;
+  const card=btn.closest('.card'); const cod=btn.getAttribute('data-cod')||'producto';
   btn.style.opacity='.4'; btn.disabled=true;
-  html2canvas(card,{scale:3,useCORS:true,backgroundColor:'#ffffff',ignoreElements:function(el){return el.classList&&el.classList.contains('dl-btn');}}).then(function(canvas){
-    if(loc) loc.hidden=prev; btn.style.opacity=''; btn.disabled=false;
-    const a=document.createElement('a'); a.download='Decora_'+(btn.getAttribute('data-cod')||'producto')+'.png'; a.href=canvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
-  }).catch(function(){ if(loc) loc.hidden=prev; btn.style.opacity=''; btn.disabled=false; alert('No se pudo generar la imagen. Suele pasar cuando la foto está en un servidor que no permite descargarla; si la foto está en la carpeta "fotos" del repositorio funciona sin problema.'); });
+  _renderTarjeta(card).then(function(canvas){
+    canvas.toBlob(function(blob){
+      btn.style.opacity=''; btn.disabled=false;
+      if(!blob){ alert('No se pudo generar la imagen.'); return; }
+      const file=new File([blob],'Decora_'+cod+'.png',{type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'Liquidación Decora',text:'Mira este producto en liquidación'}).catch(function(){});
+      } else {
+        const a=document.createElement('a'); a.download=file.name; a.href=URL.createObjectURL(blob); document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},1500);
+      }
+    },'image/png');
+  }).catch(function(){ btn.style.opacity=''; btn.disabled=false; alert('No se pudo generar la imagen. Suele pasar cuando la foto está en un servidor que no permite descargarla; con las fotos en la carpeta "fotos" del repositorio funciona sin problema.'); });
 }
 
 // ---- chips ----
