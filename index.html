@@ -11,7 +11,8 @@
   const GID_PRECIOS    = "1086284473";
   const GID_INVENTARIO = "1787664807";
   const GID_FOTOS      = "0";
-  const GID_BASE       = "2071290547";
+  const BASES = [ {gid:"2071290547", mes:"marzo"}, {gid:"338424457", mes:"junio"} ];  // hojas Base por ola
+  const COL_MES = "Mes liquidacion";   // columna en Liquidación 60% que dice cuándo entró cada producto (Marzo/Junio)
   const COL_LISTA     = "Lista Costa 1";
   const COL_PRECIO    = "Oferta Costa 1";
   const COL_DESCUENTO = "Dcto Costa 1";
@@ -527,8 +528,8 @@ function cambiarSeccion(s){
 }
 
 function cargar(){
-  Promise.all([leerTab(GID_PRODUCTOS),leerTab(GID_PROD_EXTRA),leerTab(GID_PRECIOS),leerTab(GID_INVENTARIO),leerTab(GID_FOTOS),leerTab(GID_BASE)]).then(function(res){
-    const prod1=res[0],prod2=res[1],prec=res[2],inv=res[3],fotos=res[4],base=res[5];
+  Promise.all([leerTab(GID_PRODUCTOS),leerTab(GID_PROD_EXTRA),leerTab(GID_PRECIOS),leerTab(GID_INVENTARIO),leerTab(GID_FOTOS),Promise.all(BASES.map(function(b){return leerTab(b.gid);}))]).then(function(res){
+    const prod1=res[0],prod2=res[1],prec=res[2],inv=res[3],fotos=res[4],bases=res[5];
     const mPrec={};
     prec.rows.forEach(r=>{ const c=codigo(prec.code?r[prec.code]:Object.values(r)[0]); if(!c) return;
       mPrec[c]={lista:num(campo(r,COL_LISTA,'Lista Costa 1','Lista')),precio:num(campo(r,COL_PRECIO,'Oferta Costa 1','Precio','Oferta')),dcto:descPct(num(campo(r,COL_DESCUENTO,'Dcto Costa 1','Descuento','Dcto'))),nombre:campo(r,'Nombre Producto','Nombre del producto','Nombre')}; });
@@ -552,23 +553,25 @@ function cargar(){
       const tags=tagsDe(r); tags.forEach(t=>setTag.add(t));
       const ahora=pr.precio||0,dcto=pr.dcto||0;
       const antes=(pr.lista&&pr.lista>0)?pr.lista:((ahora&&dcto>0&&dcto<100)?ahora/(1-dcto/100):0);
-      const p={codigo:c,nombre,sublinea,tags,foto:urlFoto(fo.foto),ahora,antes,desc:dcto,inv:iv.total,tiendas:iv.tiendas};
+      const mes=normaliza(campo(r,COL_MES,"Mes liquidacion","Mes liquidación","Mes"));
+      const p={codigo:c,nombre,sublinea,tags,mes,foto:urlFoto(fo.foto),ahora,antes,desc:dcto,inv:iv.total,tiendas:iv.tiendas};
       p.busq=textoBusq(p); TODOS.push(p); }); }
     agregar(prod1); agregar(prod2);
     SUBLINEAS=[...setSub].sort(); ALLTAGS=[...setTag].sort();
 
-    const codSet={}, codSub={};
-    TODOS.forEach(p=>{ codSet[p.codigo]=1; codSub[p.codigo]=p.sublinea||'(Sin sublínea)'; });
-    // inventario ACTUAL por tienda y por (tienda, sublínea)
-    INVACT={}; INVACT_SUB={};
-    TODOS.forEach(p=>{ const s=p.sublinea||'(Sin sublínea)'; Object.entries(p.tiendas).forEach(e=>{ const t=e[0],q=e[1]; if(q>0){ INVACT[t]=(INVACT[t]||0)+q; (INVACT_SUB[t]=INVACT_SUB[t]||{}); INVACT_SUB[t][s]=(INVACT_SUB[t][s]||0)+q; } }); });
-    // inventario BASE por tienda y por (tienda, sublínea)
-    INVBASE={}; INVBASE_SUB={}; let baseRows=0;
-    base.rows.forEach(r=>{ const c=codigo(base.code?r[base.code]:Object.values(r)[0]); if(!c||!codSet[c]) return;
+    const codSet={}, codSub={}, codMes={};
+    TODOS.forEach(p=>{ codSet[p.codigo]=1; codSub[p.codigo]=p.sublinea||'(Sin sublínea)'; codMes[p.codigo]=p.mes||''; });
+    // BASE por tienda y (tienda, sublínea). La hoja Base DEFINE qué productos se siguen y desde qué punto.
+    INVBASE={}; INVBASE_SUB={}; const baseCod={}; const vistoBase={}; let baseRows=0;
+    bases.forEach(function(bt,bi){ const mesBase=BASES[bi].mes; bt.rows.forEach(r=>{ const c=codigo(bt.code?r[bt.code]:Object.values(r)[0]); if(!c||!codSet[c]) return;
+      const mesC=codMes[c]||''; if(mesC && mesC!==mesBase) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
-      if(t){ INVBASE[t]=(INVBASE[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVBASE_SUB[t]=INVBASE_SUB[t]||{}); INVBASE_SUB[t][s]=(INVBASE_SUB[t][s]||0)+q; baseRows++; } });
+      if(t){ const k=c+'|'+t; if(vistoBase[k]) return; vistoBase[k]=1; INVBASE[t]=(INVBASE[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVBASE_SUB[t]=INVBASE_SUB[t]||{}); INVBASE_SUB[t][s]=(INVBASE_SUB[t][s]||0)+q; baseCod[c]=1; baseRows++; } }); });
     BASE_OK = baseRows>0;
+    // ACTUAL solo de los productos que TIENEN base definida (así el avance nunca se distorsiona)
+    INVACT={}; INVACT_SUB={};
+    TODOS.forEach(p=>{ if(!baseCod[p.codigo]) return; const s=p.sublinea||'(Sin sublínea)'; Object.entries(p.tiendas).forEach(e=>{ const t=e[0],q=e[1]; if(q>0){ INVACT[t]=(INVACT[t]||0)+q; (INVACT_SUB[t]=INVACT_SUB[t]||{}); INVACT_SUB[t][s]=(INVACT_SUB[t][s]||0)+q; } }); });
 
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector".'; return; }
     mkList('msLista',ALMACENES,'onCheck'); mkList('subLista',SUBLINEAS,'onCheckSub'); mkList('tagLista',ALLTAGS,'onCheckTag');
