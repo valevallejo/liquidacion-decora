@@ -159,7 +159,7 @@
   .bar>i{position:absolute;left:0;top:0;bottom:0;background:var(--high);border-radius:5px}
   .pctxt{font-weight:600;margin-left:8px}
   .seg .muted{color:var(--muted)}
-  .seg .c-delta{color:var(--high);font-weight:600}
+  .seg .c-actual{font-weight:600;color:var(--texto)}
   .seg-info{background:#fff;border:1px dashed var(--border);border-radius:var(--r);padding:24px;color:var(--muted);text-align:center;line-height:1.6}
   .seg-info b{color:var(--texto)}
 
@@ -475,10 +475,10 @@ function detalleRows(t, idx){
   const baseS=INVBASE_SUB[t]||{}, actS=INVACT_SUB[t]||{}, prevS=HAS_PREV?(INVPREV_SUB[t]||{}):{};
   const subs=Object.keys(baseS);
   const rows=subs.map(s=>{ const b=baseS[s]||0, a=actS[s]||0, ev=Math.max(0,b-a), pct=b>0?Math.round(ev/b*100):0;
-    const pv=HAS_PREV?(prevS[s]||0):0, evP=HAS_PREV?Math.max(0,b-pv):0, pctP=(HAS_PREV&&b>0)?Math.round(evP/b*100):0, d=HAS_PREV?(ev-evP):0;
-    return {s,b,a,ev,pct,pctP,d}; });
+    const pv=HAS_PREV?(prevS[s]||0):0, evP=HAS_PREV?Math.max(0,b-pv):0, pctP=(HAS_PREV&&b>0)?Math.round(evP/b*100):0;
+    return {s,b,a,ev,pct,pctP}; });
   rows.sort((x,y)=> (y.ev-x.ev) || (y.b-x.b));
-  const colspan=HAS_PREV?6:4;
+  const colspan=HAS_PREV?6:5;
   if(!rows.length) return '<tr class="seg-sub" data-of="'+idx+'" hidden><td colspan="'+colspan+'" class="seg-empty subname">Sin datos por sublínea.</td></tr>';
   return rows.map(r=>'<tr class="seg-sub" data-of="'+idx+'" hidden onclick="verProductos(\''+arg(t)+'\',\''+arg(r.s)+'\')" title="Ver estos productos">'+
     '<td class="c-name subname">↳ '+esc(r.s)+'<span class="ir">ver ›</span></td>'+
@@ -486,7 +486,7 @@ function detalleRows(t, idx){
     (HAS_PREV?('<td class="c-pprev muted">'+r.pctP+'%</td>'):'')+
     '<td class="c-pact">'+(r.b>0?('<span class="bar"><i style="width:'+r.pct+'%"></i></span><span class="pctxt">'+r.pct+'%</span>'):'—')+'</td>'+
     '<td class="c-evac">'+miles(r.ev)+'</td>'+
-    (HAS_PREV?('<td class="c-delta">'+(r.d>=0?'+':'')+miles(r.d)+'</td>'):'')+
+    '<td class="c-actual">'+miles(r.a)+'</td>'+
     '</tr>').join('');
 }
 
@@ -513,16 +513,16 @@ function pintarSeguimiento(){
     return;
   }
   const filas=ALMACENES.map(t=>{ const base=INVBASE[t]||0, act=INVACT[t]||0, evac=Math.max(0,base-act), pct=base>0?Math.round(evac/base*100):0;
-    const pv=HAS_PREV?(INVPREV[t]||0):0, evP=HAS_PREV?Math.max(0,base-pv):0, pctP=(HAS_PREV&&base>0)?Math.round(evP/base*100):0, d=HAS_PREV?(evac-evP):0;
-    return {t,base,act,evac,pct,pctP,d}; });
+    const pv=HAS_PREV?(INVPREV[t]||0):0, evP=HAS_PREV?Math.max(0,base-pv):0, pctP=(HAS_PREV&&base>0)?Math.round(evP/base*100):0;
+    return {t,base,act,evac,pct,pctP}; });
   filas.sort((a,b)=>b.act-a.act);
-  let tBase=0,tAct=0,tEvac=0,tDelta=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;tDelta+=(HAS_PREV?f.d:0);});
+  let tBase=0,tAct=0,tEvac=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;});
   const pctG=tBase>0?Math.round(tEvac/tBase*100):0;
   let html='<div class="seg-sum">'+
     '<div class="seg-card"><b>'+miles(tBase)+'</b><span>Inventario base (inicial)</span></div>'+
-    '<div class="seg-card"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas ('+esc(LABEL_ACTUAL)+')</span></div>'+
+    '<div class="seg-card"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas</span></div>'+
     '<div class="seg-card"><b>'+pctG+'%</b><span>Avance de evacuación</span></div>'+
-    (HAS_PREV?('<div class="seg-card"><b>'+(tDelta>=0?'+':'')+miles(tDelta)+'</b><span>Evacuado esta semana</span></div>'):('<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual</span></div>'))+
+    '<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual (pendiente)</span></div>'+
     '</div>';
   html+='<div class="seg-hint">Haz clic en un almacén para ver el avance por sublínea, y en una sublínea para ver esos productos.</div>';
   const cuerpo=filas.map((f,idx)=>
@@ -532,7 +532,7 @@ function pintarSeguimiento(){
       (HAS_PREV?('<td class="c-pprev muted">'+f.pctP+'%</td>'):'')+
       '<td class="c-pact"><span class="bar"><i style="width:'+f.pct+'%"></i></span><span class="pctxt">'+f.pct+'%</span></td>'+
       '<td class="c-evac">'+miles(f.evac)+'</td>'+
-      (HAS_PREV?('<td class="c-delta">'+(f.d>=0?'+':'')+miles(f.d)+'</td>'):'')+
+      '<td class="c-actual">'+miles(f.act)+'</td>'+
       '</tr>'+
     detalleRows(f.t, idx)
   ).join('');
@@ -542,7 +542,7 @@ function pintarSeguimiento(){
     (HAS_PREV?('<th class="c-pprev">% '+esc(LABEL_PREV)+'</th>'):'')+
     '<th class="c-pact">% '+esc(LABEL_ACTUAL)+'</th>'+
     '<th class="c-evac">Evac '+esc(LABEL_ACTUAL)+'</th>'+
-    (HAS_PREV?('<th class="c-delta">Δ crecim.</th>'):'')+
+    '<th class="c-actual">Inv. actual</th>'+
     '</tr></thead>';
   html+='<table class="seg">'+thead+'<tbody>'+cuerpo+'</tbody></table>';
   cont.innerHTML=html;
