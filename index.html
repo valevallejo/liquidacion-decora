@@ -9,7 +9,12 @@
   const GID_PRODUCTOS  = "488240662";
   const GID_PROD_EXTRA = "911640390";
   const GID_PRECIOS    = "1086284473";
-  const GID_INVENTARIO = "1787664807";
+  const GID_INV_ACTUAL = "1944588247";  // Inventario de ESTA semana (la hoja nueva más reciente).
+  const GID_INV_PREV   = "1787664807";  // Inventario de la semana ANTERIOR.
+  const LABEL_ACTUAL   = "6 Jul";       // fecha de la semana actual (cámbiala al rotar)
+  const LABEL_PREV     = "30 Jun";      // etiqueta semana anterior
+  const GID_INVENTARIO = GID_INV_ACTUAL || GID_INV_PREV;
+  const GID_INV_PREV_USE = (GID_INV_ACTUAL && GID_INV_PREV && GID_INV_ACTUAL!==GID_INV_PREV) ? GID_INV_PREV : "";
   const GID_FOTOS      = "0";
   const BASES = [ {gid:"2071290547", mes:"marzo"}, {gid:"338424457", mes:"junio"} ];  // hojas Base por ola
   const COL_MES = "Mes liquidacion";   // columna en Liquidación 60% que dice cuándo entró cada producto (Marzo/Junio)
@@ -153,6 +158,8 @@
   .bar{position:relative;height:8px;background:#EEF1F4;border-radius:5px;overflow:hidden;min-width:80px;display:inline-block;vertical-align:middle}
   .bar>i{position:absolute;left:0;top:0;bottom:0;background:var(--high);border-radius:5px}
   .pctxt{font-weight:600;margin-left:8px}
+  .seg .muted{color:var(--muted)}
+  .seg .c-delta{color:var(--high);font-weight:600}
   .seg-info{background:#fff;border:1px dashed var(--border);border-radius:var(--r);padding:24px;color:var(--muted);text-align:center;line-height:1.6}
   .seg-info b{color:var(--texto)}
 
@@ -182,8 +189,7 @@
     .pop .checklist input{width:20px;height:20px}
     .pop-acc .prim{padding:10px 26px}
     /* Tabla de seguimiento en móvil: solo columnas clave (Almacén/Sublínea, Inv. actual, % avance) */
-    table.seg th:nth-child(2),table.seg td:nth-child(2),
-    table.seg th:nth-child(4),table.seg td:nth-child(4){display:none}
+    table.seg .c-base,table.seg .c-pprev,table.seg .c-evac{display:none}
     table.seg th,table.seg td{padding:11px 8px}
     table.seg .bar{display:none}
     table.seg .pctxt{margin-left:0}
@@ -269,7 +275,7 @@
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
 let seccion='productos', pagina=1, orden='';
-let INVACT={}, INVBASE={}, INVACT_SUB={}, INVBASE_SUB={}, BASE_OK=false;
+let INVACT={}, INVBASE={}, INVACT_SUB={}, INVBASE_SUB={}, INVPREV={}, INVPREV_SUB={}, HAS_PREV=false, BASE_OK=false;
 const PAGE_SIZE=36;
 const ICONO_DL="<svg viewBox='0 0 24 24' width='17' height='17' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4v11'/><path d='M7.5 10.5 12 15l4.5-4.5'/><path d='M5 20h14'/></svg>";
 const IMG_GENERICA='data:image/svg+xml;utf8,'+encodeURIComponent(
@@ -466,16 +472,24 @@ function irAPagina(n){ pagina=n; pintar(); window.scrollTo({top:0,behavior:'smoo
 
 // filas de detalle por sublínea (base vs actual = avance)
 function detalleRows(t, idx){
-  const baseS=INVBASE_SUB[t]||{}, actS=INVACT_SUB[t]||{};
-  const subs=[...new Set(Object.keys(baseS).concat(Object.keys(actS)))];
-  const rows=subs.map(s=>{ const b=baseS[s]||0, a=actS[s]||0, ev=Math.max(0,b-a), pct=b>0?Math.round(ev/b*100):0; return {s,b,a,ev,pct}; });
+  const baseS=INVBASE_SUB[t]||{}, actS=INVACT_SUB[t]||{}, prevS=HAS_PREV?(INVPREV_SUB[t]||{}):{};
+  const subs=Object.keys(baseS);
+  const rows=subs.map(s=>{ const b=baseS[s]||0, a=actS[s]||0, ev=Math.max(0,b-a), pct=b>0?Math.round(ev/b*100):0;
+    const pv=HAS_PREV?(prevS[s]||0):0, evP=HAS_PREV?Math.max(0,b-pv):0, pctP=(HAS_PREV&&b>0)?Math.round(evP/b*100):0, d=HAS_PREV?(ev-evP):0;
+    return {s,b,a,ev,pct,pctP,d}; });
   rows.sort((x,y)=> (y.ev-x.ev) || (y.b-x.b));
-  if(!rows.length) return '<tr class="seg-sub" data-of="'+idx+'" hidden><td colspan="5" class="seg-empty subname">Sin datos por sublínea.</td></tr>';
+  const colspan=HAS_PREV?6:4;
+  if(!rows.length) return '<tr class="seg-sub" data-of="'+idx+'" hidden><td colspan="'+colspan+'" class="seg-empty subname">Sin datos por sublínea.</td></tr>';
   return rows.map(r=>'<tr class="seg-sub" data-of="'+idx+'" hidden onclick="verProductos(\''+arg(t)+'\',\''+arg(r.s)+'\')" title="Ver estos productos">'+
-    '<td class="subname">↳ '+esc(r.s)+'<span class="ir">ver ›</span></td>'+
-    '<td>'+miles(r.b)+'</td><td>'+miles(r.a)+'</td><td>'+miles(r.ev)+'</td>'+
-    '<td>'+(r.b>0?('<span class="bar"><i style="width:'+r.pct+'%"></i></span><span class="pctxt">'+r.pct+'%</span>'):'—')+'</td></tr>').join('');
+    '<td class="c-name subname">↳ '+esc(r.s)+'<span class="ir">ver ›</span></td>'+
+    '<td class="c-base">'+miles(r.b)+'</td>'+
+    (HAS_PREV?('<td class="c-pprev muted">'+r.pctP+'%</td>'):'')+
+    '<td class="c-pact">'+(r.b>0?('<span class="bar"><i style="width:'+r.pct+'%"></i></span><span class="pctxt">'+r.pct+'%</span>'):'—')+'</td>'+
+    '<td class="c-evac">'+miles(r.ev)+'</td>'+
+    (HAS_PREV?('<td class="c-delta">'+(r.d>=0?'+':'')+miles(r.d)+'</td>'):'')+
+    '</tr>').join('');
 }
+
 function toggleSeg(row){
   const i=row.getAttribute('data-i');
   const det=document.querySelectorAll('.seg-sub[data-of="'+i+'"]');
@@ -495,24 +509,42 @@ function pintarSeguimiento(){
   const cont=document.getElementById('contenido');
   document.getElementById('estado').style.display='none'; document.getElementById('paginacion').hidden=true;
   if(!BASE_OK){
-    cont.innerHTML='<div class="seg-info">Para activar el <b>Seguimiento de evacuación</b>:<br>1) En tu Google Sheet crea una pestaña <b>Base</b> con el inventario inicial (mismo formato que Inventario: código en la 1ª columna, almacén y cantidad).<br>2) Comparte la hoja y listo: aquí verás cuántas unidades se han evacuado y el % de avance por tienda y por sublínea.</div>';
+    cont.innerHTML='<div class="seg-info">Para activar el <b>Seguimiento de evacuación</b>:<br>1) Crea las hojas Base con el inventario inicial (código en la 1ª columna, almacén y cantidad).<br>2) Compártelas y aquí verás el % de avance por tienda y sublínea.</div>';
     return;
   }
-  const filas=ALMACENES.map(t=>{ const base=INVBASE[t]||0, act=INVACT[t]||0, evac=Math.max(0,base-act); const pct=base>0?Math.round(evac/base*100):0; return {t,base,act,evac,pct}; });
+  const filas=ALMACENES.map(t=>{ const base=INVBASE[t]||0, act=INVACT[t]||0, evac=Math.max(0,base-act), pct=base>0?Math.round(evac/base*100):0;
+    const pv=HAS_PREV?(INVPREV[t]||0):0, evP=HAS_PREV?Math.max(0,base-pv):0, pctP=(HAS_PREV&&base>0)?Math.round(evP/base*100):0, d=HAS_PREV?(evac-evP):0;
+    return {t,base,act,evac,pct,pctP,d}; });
   filas.sort((a,b)=>b.act-a.act);
-  let tBase=0,tAct=0,tEvac=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;});
+  let tBase=0,tAct=0,tEvac=0,tDelta=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;tDelta+=(HAS_PREV?f.d:0);});
   const pctG=tBase>0?Math.round(tEvac/tBase*100):0;
   let html='<div class="seg-sum">'+
     '<div class="seg-card"><b>'+miles(tBase)+'</b><span>Inventario base (inicial)</span></div>'+
-    '<div class="seg-card"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas</span></div>'+
+    '<div class="seg-card"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas ('+esc(LABEL_ACTUAL)+')</span></div>'+
     '<div class="seg-card"><b>'+pctG+'%</b><span>Avance de evacuación</span></div>'+
-    '<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual</span></div></div>';
-  html+='<div class="seg-hint">Ordenado por inventario actual. Haz clic en un almacén para ver el avance por sublínea, y en una sublínea para ver esos productos.</div>';
+    (HAS_PREV?('<div class="seg-card"><b>'+(tDelta>=0?'+':'')+miles(tDelta)+'</b><span>Evacuado esta semana</span></div>'):('<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual</span></div>'))+
+    '</div>';
+  html+='<div class="seg-hint">Haz clic en un almacén para ver el avance por sublínea, y en una sublínea para ver esos productos.</div>';
   const cuerpo=filas.map((f,idx)=>
-    '<tr class="seg-row" data-i="'+idx+'" onclick="toggleSeg(this)"><td><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td><td>'+miles(f.base)+'</td><td>'+miles(f.act)+'</td><td>'+miles(f.evac)+'</td><td><span class="bar"><i style="width:'+f.pct+'%"></i></span><span class="pctxt">'+f.pct+'%</span></td></tr>'+
+    '<tr class="seg-row" data-i="'+idx+'" onclick="toggleSeg(this)">'+
+      '<td class="c-name"><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td>'+
+      '<td class="c-base">'+miles(f.base)+'</td>'+
+      (HAS_PREV?('<td class="c-pprev muted">'+f.pctP+'%</td>'):'')+
+      '<td class="c-pact"><span class="bar"><i style="width:'+f.pct+'%"></i></span><span class="pctxt">'+f.pct+'%</span></td>'+
+      '<td class="c-evac">'+miles(f.evac)+'</td>'+
+      (HAS_PREV?('<td class="c-delta">'+(f.d>=0?'+':'')+miles(f.d)+'</td>'):'')+
+      '</tr>'+
     detalleRows(f.t, idx)
   ).join('');
-  html+='<table class="seg"><thead><tr><th>Almacén / sublínea</th><th>Inv. base</th><th>Inv. actual</th><th>Evacuadas</th><th>% avance</th></tr></thead><tbody>'+cuerpo+'</tbody></table>';
+  const thead='<thead><tr>'+
+    '<th class="c-name">Almacén / sublínea</th>'+
+    '<th class="c-base">Base</th>'+
+    (HAS_PREV?('<th class="c-pprev">% '+esc(LABEL_PREV)+'</th>'):'')+
+    '<th class="c-pact">% '+esc(LABEL_ACTUAL)+'</th>'+
+    '<th class="c-evac">Evac '+esc(LABEL_ACTUAL)+'</th>'+
+    (HAS_PREV?('<th class="c-delta">Δ crecim.</th>'):'')+
+    '</tr></thead>';
+  html+='<table class="seg">'+thead+'<tbody>'+cuerpo+'</tbody></table>';
   cont.innerHTML=html;
 }
 
@@ -528,8 +560,8 @@ function cambiarSeccion(s){
 }
 
 function cargar(){
-  Promise.all([leerTab(GID_PRODUCTOS),leerTab(GID_PROD_EXTRA),leerTab(GID_PRECIOS),leerTab(GID_INVENTARIO),leerTab(GID_FOTOS),Promise.all(BASES.map(function(b){return leerTab(b.gid);}))]).then(function(res){
-    const prod1=res[0],prod2=res[1],prec=res[2],inv=res[3],fotos=res[4],bases=res[5];
+  Promise.all([leerTab(GID_PRODUCTOS),leerTab(GID_PROD_EXTRA),leerTab(GID_PRECIOS),leerTab(GID_INVENTARIO),leerTab(GID_FOTOS),Promise.all(BASES.map(function(b){return leerTab(b.gid);})),leerTab(GID_INV_PREV_USE)]).then(function(res){
+    const prod1=res[0],prod2=res[1],prec=res[2],inv=res[3],fotos=res[4],bases=res[5],invPrevTab=res[6];
     const mPrec={};
     prec.rows.forEach(r=>{ const c=codigo(prec.code?r[prec.code]:Object.values(r)[0]); if(!c) return;
       mPrec[c]={lista:num(campo(r,COL_LISTA,'Lista Costa 1','Lista')),precio:num(campo(r,COL_PRECIO,'Oferta Costa 1','Precio','Oferta')),dcto:descPct(num(campo(r,COL_DESCUENTO,'Dcto Costa 1','Descuento','Dcto'))),nombre:campo(r,'Nombre Producto','Nombre del producto','Nombre')}; });
@@ -572,6 +604,13 @@ function cargar(){
     // ACTUAL solo de los productos que TIENEN base definida (así el avance nunca se distorsiona)
     INVACT={}; INVACT_SUB={};
     TODOS.forEach(p=>{ if(!baseCod[p.codigo]) return; const s=p.sublinea||'(Sin sublínea)'; Object.entries(p.tiendas).forEach(e=>{ const t=e[0],q=e[1]; if(q>0){ INVACT[t]=(INVACT[t]||0)+q; (INVACT_SUB[t]=INVACT_SUB[t]||{}); INVACT_SUB[t][s]=(INVACT_SUB[t][s]||0)+q; } }); });
+    // Semana ANTERIOR (para comparar % de una semana a otra). Solo productos con base.
+    INVPREV={}; INVPREV_SUB={}; let prevRows=0;
+    if(GID_INV_PREV_USE && invPrevTab){ invPrevTab.rows.forEach(r=>{ const c=codigo(invPrevTab.code?r[invPrevTab.code]:Object.values(r)[0]); if(!c||!baseCod[c]) return;
+      const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
+      const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
+      if(t){ INVPREV[t]=(INVPREV[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVPREV_SUB[t]=INVPREV_SUB[t]||{}); INVPREV_SUB[t][s]=(INVPREV_SUB[t][s]||0)+q; prevRows++; } }); }
+    HAS_PREV = prevRows>0;
 
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector".'; return; }
     mkList('msLista',ALMACENES,'onCheck'); mkList('subLista',SUBLINEAS,'onCheckSub'); mkList('tagLista',ALLTAGS,'onCheckTag');
