@@ -192,7 +192,7 @@
     .pop .checklist input{width:20px;height:20px}
     .pop-acc .prim{padding:10px 26px}
     /* Tabla de seguimiento en móvil: solo columnas clave (Almacén/Sublínea, Inv. actual, % avance) */
-    table.seg .c-base,table.seg .c-pprev,table.seg .c-evac{display:none}
+    table.seg .c-base,table.seg .c-pprev,table.seg .c-evac,table.seg .c-evacp{display:none}
     table.seg th,table.seg td{padding:11px 8px}
     table.seg .bar{display:none}
     table.seg .pctxt{margin-left:0}
@@ -480,14 +480,15 @@ function detalleRows(t, idx){
   const subs=Object.keys(baseS);
   const rows=subs.map(s=>{ const b=baseS[s]||0, a=actS[s]||0, ev=Math.max(0,b-a), pct=b>0?Math.round(ev/b*100):0;
     const pv=HAS_PREV?(prevS[s]||0):0, evP=HAS_PREV?Math.max(0,b-pv):0, pctP=(HAS_PREV&&b>0)?Math.round(evP/b*100):0;
-    return {s,b,a,ev,pct,pctP}; });
+    return {s,b,a,ev,pct,pctP,evP}; });
   rows.sort((x,y)=> (y.ev-x.ev) || (y.b-x.b));
-  const colspan=HAS_PREV?6:5;
+  const colspan=HAS_PREV?7:5;
   if(!rows.length) return '<tr class="seg-sub" data-of="'+idx+'" hidden><td colspan="'+colspan+'" class="seg-empty subname">Sin datos por sublínea.</td></tr>';
   return rows.map(r=>'<tr class="seg-sub" data-of="'+idx+'" hidden onclick="verProductos(\''+arg(t)+'\',\''+arg(r.s)+'\')" title="Ver estos productos">'+
     '<td class="c-name subname">↳ '+esc(r.s)+'<span class="ir">ver ›</span></td>'+
     '<td class="c-base">'+miles(r.b)+'</td>'+
     (HAS_PREV?('<td class="c-pprev muted">'+r.pctP+'%</td>'):'')+
+    (HAS_PREV?('<td class="c-evacp muted">'+miles(r.evP)+'</td>'):'')+
     '<td class="c-pact">'+(r.b>0?('<span class="bar '+colorBar(r.pct)+'"><i style="width:'+r.pct+'%"></i></span><span class="pctxt">'+r.pct+'%</span>'):'—')+'</td>'+
     '<td class="c-evac">'+miles(r.ev)+'</td>'+
     '<td class="c-actual">'+miles(r.a)+'</td>'+
@@ -522,7 +523,7 @@ function pintarSeguimiento(){
   }
   const filas=ALMACENES.map(t=>{ const base=INVBASE[t]||0, act=INVACT[t]||0, evac=Math.max(0,base-act), pct=base>0?Math.round(evac/base*100):0;
     const pv=HAS_PREV?(INVPREV[t]||0):0, evP=HAS_PREV?Math.max(0,base-pv):0, pctP=(HAS_PREV&&base>0)?Math.round(evP/base*100):0;
-    return {t,base,act,evac,pct,pctP}; });
+    return {t,base,act,evac,pct,pctP,evP}; });
   let tBase=0,tAct=0,tEvac=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;});
   const pctG=tBase>0?Math.round(tEvac/tBase*100):0; PCT_GEN=pctG;
   const key=segCol==='pct'?(x=>x.pct):(x=>x.act);
@@ -539,6 +540,7 @@ function pintarSeguimiento(){
       '<td class="c-name"><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td>'+
       '<td class="c-base">'+miles(f.base)+'</td>'+
       (HAS_PREV?('<td class="c-pprev muted">'+f.pctP+'%</td>'):'')+
+      (HAS_PREV?('<td class="c-evacp muted">'+miles(f.evP)+'</td>'):'')+
       '<td class="c-pact"><span class="bar '+colorBar(f.pct)+'"><i style="width:'+f.pct+'%"></i></span><span class="pctxt">'+f.pct+'%</span></td>'+
       '<td class="c-evac">'+miles(f.evac)+'</td>'+
       '<td class="c-actual">'+miles(f.act)+'</td>'+
@@ -549,6 +551,7 @@ function pintarSeguimiento(){
     '<th class="c-name">Almacén / sublínea</th>'+
     '<th class="c-base">Base</th>'+
     (HAS_PREV?('<th class="c-pprev">% '+esc(LABEL_PREV)+'</th>'):'')+
+    (HAS_PREV?('<th class="c-evacp">Evac '+esc(LABEL_PREV)+'</th>'):'')+
     '<th class="c-pact sortable" onclick="ordenarSeg(\'pct\')">% '+esc(LABEL_ACTUAL)+' '+flechaSeg('pct')+'</th>'+
     '<th class="c-evac">Evac '+esc(LABEL_ACTUAL)+'</th>'+
     '<th class="c-actual sortable" onclick="ordenarSeg(\'act\')">Inv. actual '+flechaSeg('act')+'</th>'+
