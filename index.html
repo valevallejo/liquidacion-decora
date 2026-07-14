@@ -32,6 +32,7 @@
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -97,7 +98,11 @@
   .filtro-aviso.on{display:inline-flex}
   .filtro-aviso button{border:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.74rem;font-weight:600;padding:3px 10px;cursor:pointer;font-family:inherit}
 
-  .conteo{font-size:.85rem;color:var(--muted);margin:12px 0}
+  .conteo-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0;flex-wrap:wrap}
+  .conteo-row[hidden]{display:none}
+  .conteo{font-size:.85rem;color:var(--muted)}
+  .btn-excel{display:inline-flex;align-items:center;gap:6px;background:#15803D;color:#fff;border:none;border-radius:var(--r-sm);padding:8px 14px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-excel:hover{background:#146c34}
   .conteo[hidden]{display:none}
   .conteo b{color:var(--texto);font-weight:600}
 
@@ -260,7 +265,10 @@
     <span class="filtro-aviso" id="filtroAviso"></span>
   </div>
 
-  <div class="conteo" id="conteo">—</div>
+  <div class="conteo-row" id="conteoRow">
+    <div class="conteo" id="conteo">—</div>
+    <button class="btn-excel" id="btnExcel" onclick="exportarExcel()">⬇ Descargar Excel</button>
+  </div>
   <div id="contenido"></div>
   <div id="estado" class="estado">Cargando productos…</div>
   <nav class="pagination" id="paginacion" hidden>
@@ -410,6 +418,28 @@ function avisoFiltro(){
 }
 
 function cambiarOrden(v){ orden=v; pagina=1; pintar(); }
+
+function exportarExcel(){
+  if(typeof XLSX==='undefined'){ alert('El módulo de Excel aún se está cargando, intenta de nuevo en unos segundos.'); return; }
+  const lista=filtrar();
+  if(!lista.length){ alert('No hay productos para exportar con los filtros actuales.'); return; }
+  const almSel = SELEC.size ? [...SELEC].sort().join(', ') : 'Todos los almacenes';
+  const datos = lista.map(function(p){ return {
+    'Código': p.codigo,
+    'Nombre': p.nombre,
+    'Sublínea': p.sublinea||'',
+    'Almacén(es)': almSel,
+    'Unidades': invVisible(p).total,
+    'Precio': p.ahora||'',
+    '% Dcto': p.desc||''
+  }; });
+  const ws=XLSX.utils.json_to_sheet(datos);
+  ws['!cols']=[{wch:12},{wch:40},{wch:20},{wch:24},{wch:10},{wch:12},{wch:8}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Liquidación');
+  const f=new Date(); const fecha=f.getFullYear()+'-'+('0'+(f.getMonth()+1)).slice(-2)+'-'+('0'+f.getDate()).slice(-2);
+  XLSX.writeFile(wb, 'Liquidacion_Decora_'+fecha+'.xlsx');
+}
 
 function guardarEstado(){
   try{ localStorage.setItem('decora_estado', JSON.stringify({
@@ -568,7 +598,7 @@ function cambiarSeccion(s){
   document.getElementById('secSeg').classList.toggle('activo',s==='seguimiento');
   const prod=s==='productos';
   document.getElementById('toolbar').hidden=!prod;
-  document.getElementById('conteo').hidden=!prod;
+  document.getElementById('conteoRow').hidden=!prod;
   cerrarPops();
   pintar();
 }
