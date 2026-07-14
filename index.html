@@ -11,8 +11,8 @@
   const GID_PRECIOS    = "1086284473";
   const GID_INV_ACTUAL = "1944588247";  // Inventario de ESTA semana (la hoja nueva más reciente).
   const GID_INV_PREV   = "1787664807";  // Inventario de la semana ANTERIOR.
-  const LABEL_ACTUAL   = "6 Jul";       // fecha de la semana actual (cámbiala al rotar)
-  const LABEL_PREV     = "30 Jun";      // etiqueta semana anterior
+  const LABEL_ACTUAL   = "14 Jul";      // respaldo si E1 está vacío (normalmente lo toma de E1)
+  const LABEL_PREV     = "6 Jul";       // respaldo si E1 está vacío
   const GID_INVENTARIO = GID_INV_ACTUAL || GID_INV_PREV;
   const GID_INV_PREV_USE = (GID_INV_ACTUAL && GID_INV_PREV && GID_INV_ACTUAL!==GID_INV_PREV) ? GID_INV_PREV : "";
   const GID_FOTOS      = "0";
@@ -279,6 +279,7 @@ let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
 let seccion='productos', pagina=1, orden='';
 let segCol='act', segDir='desc', PCT_GEN=0;
+let LAB_ACT=LABEL_ACTUAL, LAB_PREV=LABEL_PREV;
 let INVACT={}, INVBASE={}, INVACT_SUB={}, INVBASE_SUB={}, INVPREV={}, INVPREV_SUB={}, HAS_PREV=false, BASE_OK=false;
 const PAGE_SIZE=36;
 const ICONO_DL="<svg viewBox='0 0 24 24' width='17' height='17' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4v11'/><path d='M7.5 10.5 12 15l4.5-4.5'/><path d='M5 20h14'/></svg>";
@@ -308,8 +309,9 @@ function textoBusq(p){ return normaliza(p.nombre+' '+p.codigo+' '+p.sublinea+' '
 function coincide(p,q){ if(!q) return true; const toks=normaliza(q).split(/\s+/).filter(Boolean).map(singular); return toks.every(t=>p.busq.indexOf(t)>=0); }
 function campo(fila){ const nombres=Array.prototype.slice.call(arguments,1); const claves=Object.keys(fila); const limpio=s=>String(s).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); for(const n of nombres){ const k=claves.find(c=>limpio(c)===limpio(n)); if(k!=null&&fila[k]!=null&&String(fila[k]).trim()!=='') return String(fila[k]).trim(); } return ''; }
 function urlFoto(valor){ if(!valor||/sin\s*foto/i.test(valor)) return IMG_GENERICA; if(/^https?:\/\//i.test(valor)) return valor; return 'fotos/'+valor; }
-function leerTab(gid){ if(!gid) return Promise.resolve({rows:[],code:null}); return new Promise((resolve)=>{ Papa.parse(urlCSV(gid),{download:true,header:true,skipEmptyLines:true,complete:(r)=>resolve({rows:r.data,code:(r.meta.fields&&r.meta.fields[0])||null}),error:()=>resolve({rows:[],code:null})}); }); }
+function leerTab(gid){ if(!gid) return Promise.resolve({rows:[],code:null,fields:[]}); return new Promise((resolve)=>{ Papa.parse(urlCSV(gid),{download:true,header:true,skipEmptyLines:true,complete:(r)=>resolve({rows:r.data,code:(r.meta.fields&&r.meta.fields[0])||null,fields:(r.meta.fields||[])}),error:()=>resolve({rows:[],code:null,fields:[]})}); }); }
 function clasePill(q){ return q<=0?'zero':(q<=3?'low':'high'); }
+function fechaE1(tab){ return (tab&&tab.fields&&tab.fields[4]!=null&&String(tab.fields[4]).trim()!=='')?String(tab.fields[4]).trim():''; }
 
 function invVisible(p){ const sel=[...SELEC]; if(!sel.length) return {total:p.inv,n:Object.keys(p.tiendas).filter(t=>p.tiendas[t]>0).length}; let total=0,n=0; sel.forEach(t=>{const q=p.tiendas[t]||0; if(q>0){total+=q;n++;}}); return {total,n}; }
 function tiendasDe(p){ let ent=Object.entries(p.tiendas).filter(e=>e[1]>0); if(SELEC.size) ent=ent.filter(e=>SELEC.has(e[0])); return ent.sort((a,b)=>b[1]-a[1]); }
@@ -534,7 +536,7 @@ function pintarSeguimiento(){
     '<div class="seg-card"><b>'+pctG+'%</b><span>Avance de evacuación (general)</span></div>'+
     '<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual (pendiente)</span></div>'+
     '</div>';
-  html+='<div class="seg-hint">Barras: verde = cerca o sobre el avance general ('+pctG+'%), naranja = medianamente atrás, rojo = muy atrás. Toca los títulos "% '+esc(LABEL_ACTUAL)+'" o "Inv. actual" para ordenar.</div>';
+  html+='<div class="seg-hint">Barras: verde = cerca o sobre el avance general ('+pctG+'%), naranja = medianamente atrás, rojo = muy atrás. Toca los títulos "% '+esc(LAB_ACT)+'" o "Inv. actual" para ordenar.</div>';
   const cuerpo=filas.map((f,idx)=>
     '<tr class="seg-row" data-i="'+idx+'" onclick="toggleSeg(this)">'+
       '<td class="c-name"><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td>'+
@@ -550,10 +552,10 @@ function pintarSeguimiento(){
   const thead='<thead><tr>'+
     '<th class="c-name">Almacén / sublínea</th>'+
     '<th class="c-base">Base</th>'+
-    (HAS_PREV?('<th class="c-pprev">% '+esc(LABEL_PREV)+'</th>'):'')+
+    (HAS_PREV?('<th class="c-pprev">% '+esc(LAB_PREV)+'</th>'):'')+
     (HAS_PREV?('<th class="c-vend">Vendidas sem.</th>'):'')+
-    '<th class="c-pact sortable" onclick="ordenarSeg(\'pct\')">% '+esc(LABEL_ACTUAL)+' '+flechaSeg('pct')+'</th>'+
-    '<th class="c-evac">Evac '+esc(LABEL_ACTUAL)+'</th>'+
+    '<th class="c-pact sortable" onclick="ordenarSeg(\'pct\')">% '+esc(LAB_ACT)+' '+flechaSeg('pct')+'</th>'+
+    '<th class="c-evac">Evac '+esc(LAB_ACT)+'</th>'+
     '<th class="c-actual sortable" onclick="ordenarSeg(\'act\')">Inv. actual '+flechaSeg('act')+'</th>'+
     '</tr></thead>';
   html+='<table class="seg">'+thead+'<tbody>'+cuerpo+'</tbody></table>';
@@ -574,6 +576,8 @@ function cambiarSeccion(s){
 function cargar(){
   Promise.all([leerTab(GID_PRODUCTOS),leerTab(GID_PROD_EXTRA),leerTab(GID_PRECIOS),leerTab(GID_INVENTARIO),leerTab(GID_FOTOS),Promise.all(BASES.map(function(b){return leerTab(b.gid);})),leerTab(GID_INV_PREV_USE)]).then(function(res){
     const prod1=res[0],prod2=res[1],prec=res[2],inv=res[3],fotos=res[4],bases=res[5],invPrevTab=res[6];
+    LAB_ACT = fechaE1(inv) || LABEL_ACTUAL;
+    LAB_PREV = fechaE1(invPrevTab) || LABEL_PREV;
     const mPrec={};
     prec.rows.forEach(r=>{ const c=codigo(prec.code?r[prec.code]:Object.values(r)[0]); if(!c) return;
       mPrec[c]={lista:num(campo(r,COL_LISTA,'Lista Costa 1','Lista')),precio:num(campo(r,COL_PRECIO,'Oferta Costa 1','Precio','Oferta')),dcto:descPct(num(campo(r,COL_DESCUENTO,'Dcto Costa 1','Descuento','Dcto'))),nombre:campo(r,'Nombre Producto','Nombre del producto','Nombre')}; });
