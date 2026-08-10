@@ -16,7 +16,7 @@
   const GID_INVENTARIO = GID_INV_ACTUAL || GID_INV_PREV;
   const GID_INV_PREV_USE = (GID_INV_ACTUAL && GID_INV_PREV && GID_INV_ACTUAL!==GID_INV_PREV) ? GID_INV_PREV : "";
   const GID_FOTOS      = "0";
-  const BASES = [ {gid:"2071290547", mes:"marzo"}, {gid:"338424457", mes:"junio"} ];  // hojas Base por ola
+  const BASES = [ {gid:"2071290547", mes:"marzo"}, {gid:"338424457", mes:"junio"}, {gid:"1556794226", mes:"agosto"} ];  // hojas Base por ola
   const COL_MES = "Mes liquidacion";   // columna en Liquidación 60% que dice cuándo entró cada producto (Marzo/Junio)
   const COL_LISTA     = "Lista Costa 1";
   const COL_PRECIO    = "Oferta Costa 1";
@@ -38,7 +38,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --rojo:#1D4ED8; --rojo-osc:#1E3A8A; --rojo-soft:#EFF4FF;
+    --rojo:#0E7C8B; --rojo-osc:#0A5561; --rojo-soft:#E7F3F5;
     --bg:#FBFBF9; --surface:#FFFFFF; --texto:#26272B; --muted:#8A8F98; --border:#ECECEA;
     --high:#15803D; --high-bg:#ECFDF3; --low:#B45309; --low-bg:#FFF7ED;
     --r:10px; --r-sm:8px;
@@ -48,7 +48,7 @@
   html,body{overflow-x:hidden}
   body{font-family:'Inter','Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--texto);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;letter-spacing:-.1px}
 
-  header{background:linear-gradient(110deg,var(--rojo),var(--rojo-osc));padding:18px 20px;display:flex;justify-content:center}
+  header{background:linear-gradient(115deg,#0A5561 0%,#0E7C8B 60%,#12909F 100%);padding:18px 20px;display:flex;justify-content:center}
   .head-in{max-width:1280px;width:100%;display:flex;align-items:center;gap:16px}
   .logo{width:60px;height:60px;border-radius:16px;background:#fff;color:var(--rojo);font-weight:800;font-size:1.7rem;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.18);flex:none}
   .head-txt h1{color:#fff;font-size:1.6rem;font-weight:700;letter-spacing:-.4px}
@@ -140,6 +140,23 @@
   .seg-card{flex:1;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
   .seg-card b{display:block;font-size:1.5rem;font-weight:700;letter-spacing:-.5px}
   .seg-card span{font-size:.72rem;color:var(--muted)}
+  .seg-hero{background:linear-gradient(120deg,#0A5561 0%,#0E7C8B 65%,#12909F 100%);border-radius:16px;padding:20px 22px;margin-bottom:16px;color:#fff;box-shadow:var(--shadow-lg)}
+  .seg-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+  .seg-hero-title h2{font-size:1.25rem;font-weight:700;letter-spacing:-.4px}
+  .seg-hero-title p{font-size:.82rem;color:rgba(255,255,255,.82);margin-top:2px}
+  .ola-tabs{display:flex;gap:5px;background:rgba(255,255,255,.12);padding:5px;border-radius:14px;flex-wrap:wrap}
+  .ola-tab{display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:none;border:none;border-radius:10px;padding:8px 15px;cursor:pointer;font-family:inherit;color:rgba(255,255,255,.85);transition:.15s;min-width:92px;text-align:left}
+  .ola-tab:hover{background:rgba(255,255,255,.14)}
+  .ola-tab.on{background:#fff;color:var(--rojo-osc);box-shadow:0 2px 8px rgba(0,0,0,.16)}
+  .ola-tab .ot-lab{font-size:.92rem;font-weight:700;letter-spacing:-.2px}
+  .ola-tab .ot-sub{font-size:.68rem;font-weight:600;opacity:.82}
+  .ola-tab.on .ot-sub{color:var(--rojo);opacity:1}
+  .seg-kpis{display:flex;gap:10px;flex-wrap:wrap}
+  .seg-kpi{flex:1;min-width:120px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:13px 15px}
+  .seg-kpi b{display:block;font-size:1.5rem;font-weight:800;letter-spacing:-.6px;line-height:1.15}
+  .seg-kpi span{font-size:.7rem;color:rgba(255,255,255,.85);font-weight:500}
+  .seg-kpi.hl{background:#fff;color:var(--rojo-osc)}
+  .seg-kpi.hl span{color:var(--rojo)}
   .seg-hint{font-size:.78rem;color:var(--muted);margin:0 2px 8px}
   .seg-scroll{border:1px solid var(--border);border-radius:var(--r);background:#fff;overflow:hidden}
   table.seg{border-collapse:separate;border-spacing:0;width:100%;font-size:.86rem;background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
@@ -202,6 +219,12 @@
     table.seg .bar{display:none}
     table.seg .pctxt{margin-left:0}
     .seg .subname{padding-left:18px}
+    .seg-hero{padding:16px}
+    .seg-hero-top{flex-direction:column}
+    .ola-tabs{width:100%;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .ola-tab{flex:1 0 auto}
+    .seg-kpi{min-width:calc(50% - 5px)}
+    .seg-kpi b{font-size:1.3rem}
   }
 </style>
 </head>
@@ -281,7 +304,7 @@
   </nav>
 </div>
 <div class="pop-back" id="popBack" hidden onclick="cerrarPops()"></div>
-<footer>Liquidación Decora · datos en vivo desde Google Sheets</footer>
+<footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v3 · olas</b></footer>
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
@@ -289,17 +312,20 @@ let seccion='productos', pagina=1, orden='';
 let segCol='act', segDir='desc', PCT_GEN=0;
 let LAB_ACT=LABEL_ACTUAL, LAB_PREV=LABEL_PREV;
 let INVACT={}, INVBASE={}, INVACT_SUB={}, INVBASE_SUB={}, INVPREV={}, INVPREV_SUB={}, HAS_PREV=false, BASE_OK=false;
+let INVBASE_O={}, INVBASE_SUB_O={}, INVACT_O={}, INVACT_SUB_O={}, INVPREV_O={}, INVPREV_SUB_O={};
+let OLAS_INFO=[], segOla='todas';
+let CUR_BASE={}, CUR_ACT={}, CUR_PREV={}, CUR_BASE_SUB={}, CUR_ACT_SUB={}, CUR_PREV_SUB={};
 const PAGE_SIZE=36;
 const ICONO_DL="<svg viewBox='0 0 24 24' width='17' height='17' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4v11'/><path d='M7.5 10.5 12 15l4.5-4.5'/><path d='M5 20h14'/></svg>";
 const IMG_GENERICA='data:image/svg+xml;utf8,'+encodeURIComponent(
  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'>"+
  "<rect width='400' height='400' fill='#EEF3FB'/>"+
  "<circle cx='200' cy='180' r='130' fill='#DCE6F8'/>"+
- "<path d='M152 110 L248 110 L232 168 L168 168 Z' fill='#1D4ED8'/>"+
- "<rect x='196' y='168' width='8' height='96' rx='2' fill='#1E3A8A'/>"+
- "<ellipse cx='200' cy='268' rx='46' ry='13' fill='#1E3A8A'/>"+
+ "<path d='M152 110 L248 110 L232 168 L168 168 Z' fill='#0E7C8B'/>"+
+ "<rect x='196' y='168' width='8' height='96' rx='2' fill='#0A5561'/>"+
+ "<ellipse cx='200' cy='268' rx='46' ry='13' fill='#0A5561'/>"+
  "<path d='M280 252 L322 252 L314 292 L288 292 Z' fill='#B45309'/>"+
- "<text x='200' y='338' text-anchor='middle' font-family='Arial,sans-serif' font-size='24' fill='#1E3A8A' font-weight='bold'>DECORA</text>"+
+ "<text x='200' y='338' text-anchor='middle' font-family='Arial,sans-serif' font-size='24' fill='#1E3A8A' font-weight='bold' fill='#0A5561'>DECORA</text>"+
  "<text x='200' y='366' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#B45309'>Articulo sin foto</text>"+
  "</svg>");
 window.IMG_GEN=IMG_GENERICA;
@@ -317,7 +343,7 @@ function textoBusq(p){ return normaliza(p.nombre+' '+p.codigo+' '+p.sublinea+' '
 function coincide(p,q){ if(!q) return true; const toks=normaliza(q).split(/\s+/).filter(Boolean).map(singular); return toks.every(t=>p.busq.indexOf(t)>=0); }
 function campo(fila){ const nombres=Array.prototype.slice.call(arguments,1); const claves=Object.keys(fila); const limpio=s=>String(s).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); for(const n of nombres){ const k=claves.find(c=>limpio(c)===limpio(n)); if(k!=null&&fila[k]!=null&&String(fila[k]).trim()!=='') return String(fila[k]).trim(); } return ''; }
 function urlFoto(valor){ if(!valor||/sin\s*foto/i.test(valor)) return IMG_GENERICA; if(/^https?:\/\//i.test(valor)) return valor; return 'fotos/'+valor; }
-function leerTab(gid){ if(!gid) return Promise.resolve({rows:[],code:null,fields:[]}); return new Promise((resolve)=>{ Papa.parse(urlCSV(gid),{download:true,header:true,skipEmptyLines:true,complete:(r)=>resolve({rows:r.data,code:(r.meta.fields&&r.meta.fields[0])||null,fields:(r.meta.fields||[])}),error:()=>resolve({rows:[],code:null,fields:[]})}); }); }
+function leerTab(gid){ if(!gid) return Promise.resolve({rows:[],code:null,fields:[]}); return new Promise((resolve)=>{ let listo=false; const done=(v)=>{ if(listo) return; listo=true; resolve(v); }; const vacio={rows:[],code:null,fields:[]}; const to=setTimeout(()=>done(vacio),15000); Papa.parse(urlCSV(gid),{download:true,header:true,skipEmptyLines:true,complete:(r)=>{clearTimeout(to);done({rows:r.data,code:(r.meta.fields&&r.meta.fields[0])||null,fields:(r.meta.fields||[])});},error:()=>{clearTimeout(to);done(vacio);}}); }); }
 function clasePill(q){ return q<=0?'zero':(q<=3?'low':'high'); }
 function fechaE1(tab){ return (tab&&tab.fields&&tab.fields[4]!=null&&String(tab.fields[4]).trim()!=='')?String(tab.fields[4]).trim():''; }
 
@@ -508,7 +534,7 @@ function irAPagina(n){ pagina=n; pintar(); window.scrollTo({top:0,behavior:'smoo
 
 // filas de detalle por sublínea (base vs actual = avance)
 function detalleRows(t, idx){
-  const baseS=INVBASE_SUB[t]||{}, actS=INVACT_SUB[t]||{}, prevS=HAS_PREV?(INVPREV_SUB[t]||{}):{};
+  const baseS=CUR_BASE_SUB[t]||{}, actS=CUR_ACT_SUB[t]||{}, prevS=HAS_PREV?(CUR_PREV_SUB[t]||{}):{};
   const subs=Object.keys(baseS);
   const rows=subs.map(s=>{ const b=baseS[s]||0, a=actS[s]||0, ev=Math.max(0,b-a), pct=b>0?Math.round(ev/b*100):0;
     const pv=HAS_PREV?(prevS[s]||0):0, evP=HAS_PREV?Math.max(0,b-pv):0, pctP=(HAS_PREV&&b>0)?Math.round(evP/b*100):0;
@@ -552,6 +578,12 @@ function setStatsGlobal(){
   document.getElementById('stUni').textContent=miles(uni);
 }
 
+function setCur(){
+  if(segOla==='todas'){ CUR_BASE=INVBASE; CUR_ACT=INVACT; CUR_PREV=INVPREV; CUR_BASE_SUB=INVBASE_SUB; CUR_ACT_SUB=INVACT_SUB; CUR_PREV_SUB=INVPREV_SUB; }
+  else { CUR_BASE=INVBASE_O[segOla]||{}; CUR_ACT=INVACT_O[segOla]||{}; CUR_PREV=INVPREV_O[segOla]||{}; CUR_BASE_SUB=INVBASE_SUB_O[segOla]||{}; CUR_ACT_SUB=INVACT_SUB_O[segOla]||{}; CUR_PREV_SUB=INVPREV_SUB_O[segOla]||{}; }
+}
+function selOla(o){ segOla=o; segCol='act'; segDir='desc'; pintarSeguimiento(); }
+function capMes(m){ return m? m.charAt(0).toUpperCase()+m.slice(1) : m; }
 function pintarSeguimiento(){
   const cont=document.getElementById('contenido');
   document.getElementById('estado').style.display='none'; document.getElementById('paginacion').hidden=true;
@@ -560,20 +592,32 @@ function pintarSeguimiento(){
     cont.innerHTML='<div class="seg-info">Para activar el <b>Seguimiento de evacuación</b>:<br>1) Crea las hojas Base con el inventario inicial (código en la 1ª columna, almacén y cantidad).<br>2) Compártelas y aquí verás el % de avance por tienda y sublínea.</div>';
     return;
   }
-  const filas=ALMACENES.map(t=>{ const base=INVBASE[t]||0, act=INVACT[t]||0, evac=Math.max(0,base-act), pct=base>0?Math.round(evac/base*100):0;
-    const pv=HAS_PREV?(INVPREV[t]||0):0, evP=HAS_PREV?Math.max(0,base-pv):0, pctP=(HAS_PREV&&base>0)?Math.round(evP/base*100):0;
-    return {t,base,act,evac,pct,pctP,evP,vend:(HAS_PREV?(pv-act):0)}; });
+  setCur();
+  const filas=ALMACENES.map(t=>{ const base=CUR_BASE[t]||0, act=CUR_ACT[t]||0, evac=Math.max(0,base-act), pct=base>0?Math.round(evac/base*100):0;
+    const pv=HAS_PREV?(CUR_PREV[t]||0):0, evP=HAS_PREV?Math.max(0,base-pv):0, pctP=(HAS_PREV&&base>0)?Math.round(evP/base*100):0;
+    return {t,base,act,evac,pct,pctP,evP,vend:(HAS_PREV?(pv-act):0)}; }).filter(f=>f.base>0);
   let tBase=0,tAct=0,tEvac=0,tVend=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;tVend+=(f.vend||0);});
   const pctG=tBase>0?Math.round(tEvac/tBase*100):0; PCT_GEN=pctG;
   const key=segCol==='pct'?(x=>x.pct):(x=>x.act);
   filas.sort((a,b)=> segDir==='asc'? (key(a)-key(b)) : (key(b)-key(a)) );
-  let html='<div class="seg-sum">'+
-    '<div class="seg-card"><b>'+miles(tBase)+'</b><span>Inventario base (inicial)</span></div>'+
-    '<div class="seg-card"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas</span></div>'+
-    '<div class="seg-card"><b>'+pctG+'%</b><span>Avance de evacuación (general)</span></div>'+
-    (HAS_PREV?('<div class="seg-card"><b>'+miles(tVend)+'</b><span>Vendidas última semana</span></div>'):('<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual (pendiente)</span></div>'))+
-    '</div>';
-  html+='<div class="seg-hint">Barras: verde = cerca o sobre el avance general ('+pctG+'%), naranja = medianamente atrás, rojo = muy atrás. Toca los títulos "% '+esc(LAB_ACT)+'" o "Inv. actual" para ordenar.</div>';
+  // Selector de olas (unidades base + % evacuación por ola)
+  let allBase=0,allEvac=0; OLAS_INFO.forEach(o=>{allBase+=o.base;allEvac+=o.evac;}); const allPct=allBase>0?Math.round(allEvac/allBase*100):0;
+  let pills='<button class="ola-tab'+(segOla==='todas'?' on':'')+'" onclick="selOla(\'todas\')"><span class="ot-lab">Todas</span><span class="ot-sub">'+miles(allBase)+' u \u00b7 '+allPct+'%</span></button>';
+  OLAS_INFO.forEach(function(o){ pills+='<button class="ola-tab'+(segOla===o.mes?' on':'')+'" onclick="selOla(\''+o.mes+'\')"><span class="ot-lab">'+esc(capMes(o.mes))+'</span><span class="ot-sub">'+miles(o.base)+' u \u00b7 '+o.pct+'%</span></button>'; });
+  const kpi4 = HAS_PREV?('<div class="seg-kpi"><b>'+miles(tVend)+'</b><span>Vendidas \u00faltima semana</span></div>'):('<div class="seg-kpi"><b>'+miles(tAct)+'</b><span>Inventario actual</span></div>');
+  let html='<div class="seg-hero">'+
+    '<div class="seg-hero-top">'+
+      '<div class="seg-hero-title"><h2>Avance de evacuaci\u00f3n</h2><p>Corte '+esc(LAB_ACT)+' \u00b7 '+(segOla==='todas'?'todas las olas':('ola '+esc(capMes(segOla))))+'</p></div>'+
+      '<div class="ola-tabs">'+pills+'</div>'+
+    '</div>'+
+    '<div class="seg-kpis">'+
+      '<div class="seg-kpi"><b>'+miles(tBase)+'</b><span>Inventario base (inicial)</span></div>'+
+      '<div class="seg-kpi"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas</span></div>'+
+      '<div class="seg-kpi hl"><b>'+pctG+'%</b><span>Avance de evacuaci\u00f3n</span></div>'+
+      kpi4+
+    '</div>'+
+  '</div>';
+  html+='<div class="seg-hint">Barras: verde = cerca o sobre el avance general ('+pctG+'%), naranja = medianamente atr\u00e1s, rojo = muy atr\u00e1s. Toca los t\u00edtulos "% '+esc(LAB_ACT)+'" o "Inv. actual" para ordenar.</div>';
   const cuerpo=filas.map((f,idx)=>
     '<tr class="seg-row" data-i="'+idx+'" onclick="toggleSeg(this)">'+
       '<td class="c-name"><span class="caret">▸</span><span class="alm-name">'+esc(f.t)+'</span></td>'+
@@ -647,23 +691,31 @@ function cargar(){
     const codSet={}, codSub={}, codMes={};
     TODOS.forEach(p=>{ codSet[p.codigo]=1; codSub[p.codigo]=p.sublinea||'(Sin sublínea)'; codMes[p.codigo]=p.mes||''; });
     // BASE por tienda y (tienda, sublínea). La hoja Base DEFINE qué productos se siguen y desde qué punto.
-    INVBASE={}; INVBASE_SUB={}; const baseCod={}; const vistoBase={}; let baseRows=0;
+    INVBASE={}; INVBASE_SUB={}; INVBASE_O={}; INVBASE_SUB_O={}; const baseCod={}; const codOla={}; const vistoBase={}; let baseRows=0;
     bases.forEach(function(bt,bi){ const mesBase=BASES[bi].mes; bt.rows.forEach(r=>{ const c=codigo(bt.code?r[bt.code]:Object.values(r)[0]); if(!c||!codSet[c]) return;
       const mesC=codMes[c]||''; if(mesC && mesC!==mesBase) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
-      if(t){ const k=c+'|'+t; if(vistoBase[k]) return; vistoBase[k]=1; INVBASE[t]=(INVBASE[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVBASE_SUB[t]=INVBASE_SUB[t]||{}); INVBASE_SUB[t][s]=(INVBASE_SUB[t][s]||0)+q; baseCod[c]=1; baseRows++; } }); });
+      if(t){ const k=c+'|'+t; if(vistoBase[k]) return; vistoBase[k]=1; const s=codSub[c]||'(Sin sublínea)';
+        INVBASE[t]=(INVBASE[t]||0)+q; (INVBASE_SUB[t]=INVBASE_SUB[t]||{}); INVBASE_SUB[t][s]=(INVBASE_SUB[t][s]||0)+q;
+        (INVBASE_O[mesBase]=INVBASE_O[mesBase]||{}); INVBASE_O[mesBase][t]=(INVBASE_O[mesBase][t]||0)+q;
+        (INVBASE_SUB_O[mesBase]=INVBASE_SUB_O[mesBase]||{}); (INVBASE_SUB_O[mesBase][t]=INVBASE_SUB_O[mesBase][t]||{}); INVBASE_SUB_O[mesBase][t][s]=(INVBASE_SUB_O[mesBase][t][s]||0)+q;
+        if(!codOla[c]) codOla[c]=mesBase; baseCod[c]=1; baseRows++; } }); });
     BASE_OK = baseRows>0;
     // ACTUAL solo de los productos que TIENEN base definida (así el avance nunca se distorsiona)
-    INVACT={}; INVACT_SUB={};
-    TODOS.forEach(p=>{ if(!baseCod[p.codigo]) return; const s=p.sublinea||'(Sin sublínea)'; Object.entries(p.tiendas).forEach(e=>{ const t=e[0],q=e[1]; if(q>0){ INVACT[t]=(INVACT[t]||0)+q; (INVACT_SUB[t]=INVACT_SUB[t]||{}); INVACT_SUB[t][s]=(INVACT_SUB[t][s]||0)+q; } }); });
+    INVACT={}; INVACT_SUB={}; INVACT_O={}; INVACT_SUB_O={};
+    TODOS.forEach(p=>{ if(!baseCod[p.codigo]) return; const s=p.sublinea||'(Sin sublínea)'; const ol=codOla[p.codigo]; Object.entries(p.tiendas).forEach(e=>{ const t=e[0],q=e[1]; if(q>0){ INVACT[t]=(INVACT[t]||0)+q; (INVACT_SUB[t]=INVACT_SUB[t]||{}); INVACT_SUB[t][s]=(INVACT_SUB[t][s]||0)+q;
+      if(ol){ (INVACT_O[ol]=INVACT_O[ol]||{}); INVACT_O[ol][t]=(INVACT_O[ol][t]||0)+q; (INVACT_SUB_O[ol]=INVACT_SUB_O[ol]||{}); (INVACT_SUB_O[ol][t]=INVACT_SUB_O[ol][t]||{}); INVACT_SUB_O[ol][t][s]=(INVACT_SUB_O[ol][t][s]||0)+q; } } }); });
     // Semana ANTERIOR (para comparar % de una semana a otra). Solo productos con base.
-    INVPREV={}; INVPREV_SUB={}; let prevRows=0;
+    INVPREV={}; INVPREV_SUB={}; INVPREV_O={}; INVPREV_SUB_O={}; let prevRows=0;
     if(GID_INV_PREV_USE && invPrevTab){ invPrevTab.rows.forEach(r=>{ const c=codigo(invPrevTab.code?r[invPrevTab.code]:Object.values(r)[0]); if(!c||!baseCod[c]) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
-      if(t){ INVPREV[t]=(INVPREV[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVPREV_SUB[t]=INVPREV_SUB[t]||{}); INVPREV_SUB[t][s]=(INVPREV_SUB[t][s]||0)+q; prevRows++; } }); }
+      if(t){ INVPREV[t]=(INVPREV[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVPREV_SUB[t]=INVPREV_SUB[t]||{}); INVPREV_SUB[t][s]=(INVPREV_SUB[t][s]||0)+q;
+        const ol=codOla[c]; if(ol){ (INVPREV_O[ol]=INVPREV_O[ol]||{}); INVPREV_O[ol][t]=(INVPREV_O[ol][t]||0)+q; (INVPREV_SUB_O[ol]=INVPREV_SUB_O[ol]||{}); (INVPREV_SUB_O[ol][t]=INVPREV_SUB_O[ol][t]||{}); INVPREV_SUB_O[ol][t][s]=(INVPREV_SUB_O[ol][t][s]||0)+q; } prevRows++; } }); }
     HAS_PREV = prevRows>0;
+    OLAS_INFO=[]; BASES.forEach(function(b){ const mes=b.mes, bd=INVBASE_O[mes]; if(!bd) return; let bb=0,aa=0,pp=0; Object.keys(bd).forEach(t=>bb+=bd[t]); const ad=INVACT_O[mes]||{}; Object.keys(ad).forEach(t=>aa+=ad[t]); const pd=INVPREV_O[mes]||{}; Object.keys(pd).forEach(t=>pp+=pd[t]); if(bb>0){ OLAS_INFO.push({mes:mes,base:bb,act:aa,evac:Math.max(0,bb-aa),pct:Math.round(Math.max(0,bb-aa)/bb*100),vend:(pp-aa)}); } });
+    if(segOla!=='todas' && !OLAS_INFO.some(function(o){return o.mes===segOla;})) segOla='todas';
 
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector".'; return; }
     mkList('msLista',ALMACENES,'onCheck'); mkList('subLista',SUBLINEAS,'onCheckSub'); mkList('tagLista',ALLTAGS,'onCheckTag');
