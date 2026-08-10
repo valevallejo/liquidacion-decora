@@ -38,7 +38,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --rojo:#C8102E; --rojo-osc:#9A0D24; --rojo-soft:#FEF2F4;
+    --rojo:#1D4ED8; --rojo-osc:#1E3A8A; --rojo-soft:#EFF4FF;
     --bg:#FBFBF9; --surface:#FFFFFF; --texto:#26272B; --muted:#8A8F98; --border:#ECECEA;
     --high:#15803D; --high-bg:#ECFDF3; --low:#B45309; --low-bg:#FFF7ED;
     --r:10px; --r-sm:8px;
@@ -94,7 +94,7 @@
   .tb-sel{padding:8px 12px;border:1px solid var(--border);border-radius:20px;background:#fff;font-size:.85rem;font-family:inherit;color:var(--texto);cursor:pointer}
   .tb-sel:focus{outline:none;border-color:var(--rojo);box-shadow:0 0 0 3px var(--rojo-soft)}
   .spacer{flex:1}
-  .filtro-aviso{font-size:.82rem;color:var(--rojo);background:var(--rojo-soft);border:1px solid #F6CDD3;border-radius:20px;padding:6px 12px;display:none;align-items:center;gap:8px;margin:12px 0 0}
+  .filtro-aviso{font-size:.82rem;color:var(--rojo);background:var(--rojo-soft);border:1px solid #C7D7FE;border-radius:20px;padding:6px 12px;display:none;align-items:center;gap:8px;margin:12px 0 0}
   .filtro-aviso.on{display:inline-flex}
   .filtro-aviso button{border:none;background:var(--rojo);color:#fff;border-radius:20px;font-size:.74rem;font-weight:600;padding:3px 10px;cursor:pointer;font-family:inherit}
 
@@ -146,10 +146,10 @@
   table.seg th,table.seg td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
   table.seg th:first-child,table.seg td:first-child{text-align:left}
   table.seg thead th{background:#fff;color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
-  table.seg tfoot td{font-weight:700;background:#FFF7F8;border-top:2px solid var(--rojo)}
+  table.seg tfoot td{font-weight:700;background:#F2F6FE;border-top:2px solid var(--rojo)}
   table.seg tbody tr.seg-row{cursor:pointer}
   table.seg tbody tr.seg-row:hover td{background:var(--rojo-soft)}
-  table.seg tbody tr.seg-row.abierto td{background:#FFF7F8}
+  table.seg tbody tr.seg-row.abierto td{background:#F2F6FE}
   .seg .caret{display:inline-block;transition:transform .15s;margin-right:9px;color:var(--rojo);font-size:.8rem}
   table.seg tbody tr.seg-row.abierto .caret{transform:rotate(90deg)}
   .seg .alm-name{font-weight:700;color:var(--texto)}
@@ -162,7 +162,7 @@
   .seg-empty{color:var(--muted);text-align:left}
   .bar{position:relative;height:8px;background:#EEF1F4;border-radius:5px;overflow:hidden;min-width:80px;display:inline-block;vertical-align:middle}
     .bar>i{position:absolute;left:0;top:0;bottom:0;background:var(--high);border-radius:5px}
-  .bar.bar-green>i{background:var(--high)} .bar.bar-orange>i{background:#F59E0B} .bar.bar-red>i{background:var(--rojo)}
+  .bar.bar-green>i{background:var(--high)} .bar.bar-orange>i{background:#F59E0B} .bar.bar-red>i{background:#DC2626}
   .seg th.sortable{cursor:pointer;user-select:none} .seg th.sortable:hover{color:var(--rojo)}
   .sarr{color:#C9CDD3;font-size:.7rem;margin-left:3px} .sarr.on{color:var(--rojo)}
   .pctxt{font-weight:600;margin-left:8px}
@@ -293,13 +293,13 @@ const PAGE_SIZE=36;
 const ICONO_DL="<svg viewBox='0 0 24 24' width='17' height='17' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 4v11'/><path d='M7.5 10.5 12 15l4.5-4.5'/><path d='M5 20h14'/></svg>";
 const IMG_GENERICA='data:image/svg+xml;utf8,'+encodeURIComponent(
  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'>"+
- "<rect width='400' height='400' fill='#FBEDEA'/>"+
- "<circle cx='200' cy='180' r='130' fill='#F7D8D1'/>"+
- "<path d='M152 110 L248 110 L232 168 L168 168 Z' fill='#C8102E'/>"+
- "<rect x='196' y='168' width='8' height='96' rx='2' fill='#9A0D24'/>"+
- "<ellipse cx='200' cy='268' rx='46' ry='13' fill='#9A0D24'/>"+
+ "<rect width='400' height='400' fill='#EEF3FB'/>"+
+ "<circle cx='200' cy='180' r='130' fill='#DCE6F8'/>"+
+ "<path d='M152 110 L248 110 L232 168 L168 168 Z' fill='#1D4ED8'/>"+
+ "<rect x='196' y='168' width='8' height='96' rx='2' fill='#1E3A8A'/>"+
+ "<ellipse cx='200' cy='268' rx='46' ry='13' fill='#1E3A8A'/>"+
  "<path d='M280 252 L322 252 L314 292 L288 292 Z' fill='#B45309'/>"+
- "<text x='200' y='338' text-anchor='middle' font-family='Arial,sans-serif' font-size='24' fill='#9A0D24' font-weight='bold'>DECORA</text>"+
+ "<text x='200' y='338' text-anchor='middle' font-family='Arial,sans-serif' font-size='24' fill='#1E3A8A' font-weight='bold'>DECORA</text>"+
  "<text x='200' y='366' text-anchor='middle' font-family='Arial,sans-serif' font-size='15' fill='#B45309'>Articulo sin foto</text>"+
  "</svg>");
 window.IMG_GEN=IMG_GENERICA;
@@ -545,10 +545,17 @@ function verProductos(t,sub){
 function colorBar(pct){ const d=pct-PCT_GEN; if(d>=-3) return 'bar-green'; if(d>=-10) return 'bar-orange'; return 'bar-red'; }
 function flechaSeg(col){ if(segCol!==col) return '<span class="sarr">\u21C5</span>'; return '<span class="sarr on">'+(segDir==='asc'?'\u25B2':'\u25BC')+'</span>'; }
 function ordenarSeg(col){ if(segCol===col){ segDir=(segDir==='asc'?'desc':'asc'); } else { segCol=col; segDir='desc'; } pintarSeguimiento(); }
+function setStatsGlobal(){
+  const uni=TODOS.reduce(function(a,p){return a+(p.inv||0);},0);
+  document.getElementById('stProd').textContent=miles(TODOS.length);
+  document.getElementById('stTie').textContent=miles(ALMACENES.length);
+  document.getElementById('stUni').textContent=miles(uni);
+}
 
 function pintarSeguimiento(){
   const cont=document.getElementById('contenido');
   document.getElementById('estado').style.display='none'; document.getElementById('paginacion').hidden=true;
+  setStatsGlobal();
   if(!BASE_OK){
     cont.innerHTML='<div class="seg-info">Para activar el <b>Seguimiento de evacuación</b>:<br>1) Crea las hojas Base con el inventario inicial (código en la 1ª columna, almacén y cantidad).<br>2) Compártelas y aquí verás el % de avance por tienda y sublínea.</div>';
     return;
@@ -556,7 +563,7 @@ function pintarSeguimiento(){
   const filas=ALMACENES.map(t=>{ const base=INVBASE[t]||0, act=INVACT[t]||0, evac=Math.max(0,base-act), pct=base>0?Math.round(evac/base*100):0;
     const pv=HAS_PREV?(INVPREV[t]||0):0, evP=HAS_PREV?Math.max(0,base-pv):0, pctP=(HAS_PREV&&base>0)?Math.round(evP/base*100):0;
     return {t,base,act,evac,pct,pctP,evP,vend:(HAS_PREV?(pv-act):0)}; });
-  let tBase=0,tAct=0,tEvac=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;});
+  let tBase=0,tAct=0,tEvac=0,tVend=0; filas.forEach(f=>{tBase+=f.base;tAct+=f.act;tEvac+=f.evac;tVend+=(f.vend||0);});
   const pctG=tBase>0?Math.round(tEvac/tBase*100):0; PCT_GEN=pctG;
   const key=segCol==='pct'?(x=>x.pct):(x=>x.act);
   filas.sort((a,b)=> segDir==='asc'? (key(a)-key(b)) : (key(b)-key(a)) );
@@ -564,7 +571,7 @@ function pintarSeguimiento(){
     '<div class="seg-card"><b>'+miles(tBase)+'</b><span>Inventario base (inicial)</span></div>'+
     '<div class="seg-card"><b>'+miles(tEvac)+'</b><span>Unidades evacuadas</span></div>'+
     '<div class="seg-card"><b>'+pctG+'%</b><span>Avance de evacuación (general)</span></div>'+
-    '<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual (pendiente)</span></div>'+
+    (HAS_PREV?('<div class="seg-card"><b>'+miles(tVend)+'</b><span>Vendidas última semana</span></div>'):('<div class="seg-card"><b>'+miles(tAct)+'</b><span>Inventario actual (pendiente)</span></div>'))+
     '</div>';
   html+='<div class="seg-hint">Barras: verde = cerca o sobre el avance general ('+pctG+'%), naranja = medianamente atrás, rojo = muy atrás. Toca los títulos "% '+esc(LAB_ACT)+'" o "Inv. actual" para ordenar.</div>';
   const cuerpo=filas.map((f,idx)=>
