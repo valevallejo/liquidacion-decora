@@ -308,7 +308,7 @@
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
-let seccion='productos', pagina=1, orden='';
+let seccion='seguimiento', pagina=1, orden='';
 let segCol='act', segDir='desc', PCT_GEN=0;
 let LAB_ACT=LABEL_ACTUAL, LAB_PREV=LABEL_PREV;
 let INVACT={}, INVBASE={}, INVACT_SUB={}, INVBASE_SUB={}, INVPREV={}, INVPREV_SUB={}, HAS_PREV=false, BASE_OK=false;
@@ -481,7 +481,6 @@ function restaurarEstado(){
     const o=document.getElementById('orden'); if(o) o.value=orden;
     document.getElementById('buscar').value=s.q||'';
     syncChecks();
-    seccion=(s.seccion==='seguimiento')?'seguimiento':'productos';
   }catch(e){}
 }
 
