@@ -305,7 +305,7 @@
   </nav>
 </div>
 <div class="pop-back" id="popBack" hidden onclick="cerrarPops()"></div>
-<footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v3 · olas</b></footer>
+<footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v4 · orden</b></footer>
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
@@ -485,7 +485,11 @@ function restaurarEstado(){
   }catch(e){}
 }
 
-function olaRank(mes){ for(var i=0;i<BASES.length;i++){ if(BASES[i].mes===mes) return i; } return -1; }
+function olaRank(mes){ const m=String(mes||''); if(!m) return -1;
+  const abbr={mar:'marzo',mzo:'marzo',jun:'junio',ago:'agosto',agt:'agosto'};
+  for(var i=0;i<BASES.length;i++){ const k=BASES[i].mes; if(m===k||m.indexOf(k)>-1) return i; }
+  for(var j=0;j<BASES.length;j++){ const k2=BASES[j].mes; for(const a in abbr){ if(abbr[a]===k2 && m.indexOf(a)>-1) return j; } }
+  return -1; }
 function cmpNuevo(a,b){ const inv=p=>invVisible(p).total; return (olaRank(b.mes)-olaRank(a.mes))||(inv(b)-inv(a)); }
 function filtrar(){
   const q=document.getElementById('buscar').value.trim();
