@@ -277,7 +277,8 @@
         </div>
       </div>
       <select id="orden" class="tb-sel" onchange="cambiarOrden(this.value)">
-        <option value="">Ordenar por…</option>
+        <option value="nuevo" selected>Novedad: más nuevo primero</option>
+        <option value="">Ordenar por… (por defecto: novedad)</option>
         <option value="inv-desc">Inventario: mayor a menor</option>
         <option value="inv-asc">Inventario: menor a mayor</option>
         <option value="precio-desc">Precio: mayor a menor</option>
@@ -308,7 +309,7 @@
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
-let seccion='seguimiento', pagina=1, orden='';
+let seccion='seguimiento', pagina=1, orden='nuevo';
 let segCol='act', segDir='desc', PCT_GEN=0;
 let LAB_ACT=LABEL_ACTUAL, LAB_PREV=LABEL_PREV;
 let INVACT={}, INVBASE={}, INVACT_SUB={}, INVBASE_SUB={}, INVPREV={}, INVPREV_SUB={}, HAS_PREV=false, BASE_OK=false;
@@ -484,6 +485,8 @@ function restaurarEstado(){
   }catch(e){}
 }
 
+function olaRank(mes){ for(var i=0;i<BASES.length;i++){ if(BASES[i].mes===mes) return i; } return -1; }
+function cmpNuevo(a,b){ const inv=p=>invVisible(p).total; return (olaRank(b.mes)-olaRank(a.mes))||(inv(b)-inv(a)); }
 function filtrar(){
   const q=document.getElementById('buscar').value.trim();
   const sel=[...SELEC];
@@ -492,11 +495,9 @@ function filtrar(){
   if(SELSUB.size) lista=lista.filter(p=>SELSUB.has(p.sublinea));
   if(sel.length) lista=lista.filter(p=>sel.some(t=>(p.tiendas[t]||0)>0));
   if(q) lista=lista.filter(p=>coincide(p,q));
-  if(orden){
-    const inv=p=>invVisible(p).total;
-    const cmp={'inv-desc':(a,b)=>inv(b)-inv(a),'inv-asc':(a,b)=>inv(a)-inv(b),'precio-desc':(a,b)=>b.ahora-a.ahora,'precio-asc':(a,b)=>a.ahora-b.ahora,'dcto-desc':(a,b)=>b.desc-a.desc}[orden];
-    if(cmp) lista=lista.slice().sort(cmp);
-  }
+  const inv=p=>invVisible(p).total;
+  const cmp={'nuevo':(a,b)=>(olaRank(b.mes)-olaRank(a.mes))||(inv(b)-inv(a)),'inv-desc':(a,b)=>inv(b)-inv(a),'inv-asc':(a,b)=>inv(a)-inv(b),'precio-desc':(a,b)=>b.ahora-a.ahora,'precio-asc':(a,b)=>a.ahora-b.ahora,'dcto-desc':(a,b)=>b.desc-a.desc}[orden] || cmpNuevo;
+  lista=lista.slice().sort(cmp);
   return lista;
 }
 
@@ -674,14 +675,16 @@ function cargar(){
 
     const setSub=new Set(), setTag=new Set(), vistos={};
     function tagsDe(r){ const s=campo(r,COL_TAGS,'Tags','Etiquetas','Tag'); return s?s.split(/[;,/]/).map(x=>x.trim()).filter(Boolean):[]; }
-    function agregar(tab){ tab.rows.forEach(r=>{ const c=codigo(tab.code?r[tab.code]:Object.values(r)[0]); if(!c||vistos[c]) return; vistos[c]=1;
+    function agregar(tab){ tab.rows.forEach(r=>{ const c=codigo(tab.code?r[tab.code]:Object.values(r)[0]); if(!c||vistos[c]) return;
+      const mes=normaliza(campo(r,COL_MES,"Mes liquidacion","Mes liquidación","Mes"));
+      if(!mes) return; // sin Mes de liquidación => NO está en liquidación: no se muestra aunque tenga inventario
+      vistos[c]=1;
       const pr=mPrec[c]||{},fo=mFoto[c]||{},iv=mInv[c]||{total:0,tiendas:{}};
       const nombre=fo.nombre||pr.nombre||campo(r,'NOMBRE DEL PRODUCTO','Nombre del producto','Nombre')||c;
       const sublinea=campo(r,COL_SUBLINEA,'Sublinea','Sublínea','Sub linea'); if(sublinea) setSub.add(sublinea);
       const tags=tagsDe(r); tags.forEach(t=>setTag.add(t));
       const ahora=pr.precio||0,dcto=pr.dcto||0;
       const antes=(pr.lista&&pr.lista>0)?pr.lista:((ahora&&dcto>0&&dcto<100)?ahora/(1-dcto/100):0);
-      const mes=normaliza(campo(r,COL_MES,"Mes liquidacion","Mes liquidación","Mes"));
       const p={codigo:c,nombre,sublinea,tags,mes,foto:urlFoto(fo.foto),ahora,antes,desc:dcto,inv:iv.total,tiendas:iv.tiendas};
       p.busq=textoBusq(p); TODOS.push(p); }); }
     agregar(prod1); agregar(prod2);
@@ -719,7 +722,7 @@ function cargar(){
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector".'; return; }
     mkList('msLista',ALMACENES,'onCheck'); mkList('subLista',SUBLINEAS,'onCheckSub'); mkList('tagLista',ALLTAGS,'onCheckTag');
     if(ALLTAGS.length===0) document.getElementById('chipTag').style.display='none';
-    restaurarEstado(); updateChips(); cambiarSeccion(seccion);
+    restaurarEstado(); { const os=document.getElementById('orden'); if(os) os.value=orden; } updateChips(); cambiarSeccion(seccion);
   });
 }
 
