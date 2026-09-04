@@ -102,6 +102,9 @@
   .conteo-row[hidden]{display:none}
   .conteo{font-size:.85rem;color:var(--muted)}
   .btn-excel{display:inline-flex;align-items:center;gap:6px;background:#15803D;color:#fff;border:none;border-radius:var(--r-sm);padding:8px 14px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn-pdf{display:inline-flex;align-items:center;gap:6px;background:var(--rojo);color:#fff;border:none;border-radius:var(--r-sm);padding:8px 14px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;margin-left:8px}
+  .btn-pdf:hover{background:var(--rojo-osc)}
+  .exp-btns{display:flex;flex-wrap:wrap;gap:0}
   .btn-excel:hover{background:#146c34}
   .conteo[hidden]{display:none}
   .conteo b{color:var(--texto);font-weight:600}
@@ -291,7 +294,7 @@
 
   <div class="conteo-row" id="conteoRow">
     <div class="conteo" id="conteo">—</div>
-    <button class="btn-excel" id="btnExcel" onclick="exportarExcel()">⬇ Descargar Excel</button>
+    <div class="exp-btns"><button class="btn-excel" id="btnExcel" onclick="exportarExcel()">⬇ Excel</button><button class="btn-pdf" id="btnPdf" onclick="exportarPDF()">📄 PDF (con fotos)</button></div>
   </div>
   <div id="contenido"></div>
   <div id="estado" class="estado">Cargando productos…</div>
@@ -445,6 +448,63 @@ function avisoFiltro(){
 }
 
 function cambiarOrden(v){ orden=v; pagina=1; pintar(); }
+
+function exportarPDF(){
+  const lista=filtrar();
+  if(!lista.length){ alert('No hay productos para exportar con los filtros actuales.'); return; }
+  const almSel = SELEC.size ? [...SELEC].sort().join(', ') : 'Todos los almacenes';
+  const f=new Date(); const fecha=('0'+f.getDate()).slice(-2)+'/'+('0'+(f.getMonth()+1)).slice(-2)+'/'+f.getFullYear();
+  const filas = lista.map(function(p){
+    const uni=invVisible(p).total;
+    const dcto = p.desc? '<span class="d">-'+p.desc+'%</span>' : '<span class="nd">—</span>';
+    const antes = p.antes? '<span class="a">'+pesos(p.antes)+'</span>' : '';
+    return '<tr>'+
+      '<td class="tf"><img src="'+esc(p.foto)+'" onerror="ferr(this)"></td>'+
+      '<td class="tc">'+esc(p.codigo)+'</td>'+
+      '<td class="tn">'+esc(p.nombre)+'</td>'+
+      '<td class="tu">'+miles(uni)+'</td>'+
+      '<td class="tp">'+antes+'<span class="ah">'+(pesos(p.ahora)||'—')+'</span></td>'+
+      '<td class="td">'+dcto+'</td>'+
+    '</tr>';
+  }).join('');
+  const est='<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}'+
+    'body{padding:14px;color:#222}'+
+    '.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #0E7C8B;padding-bottom:8px;margin-bottom:12px}'+
+    '.hd h1{font-size:18px;color:#0E7C8B}.hd .m{font-size:11px;color:#666;text-align:right;line-height:1.4}'+
+    '.pr-btn{margin:0 0 12px;padding:8px 16px;background:#0E7C8B;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer}'+
+    'table{width:100%;border-collapse:collapse;font-size:12px}'+
+    'thead{display:table-header-group}'+
+    'thead th{background:#0E7C8B;color:#fff;font-size:11px;text-align:left;padding:8px 10px;border:1px solid #0b5f6c}'+
+    'th.thu,th.thp,th.thd{text-align:right}th.thd{text-align:center}'+
+    'tbody td{border:1px solid #e2e2e2;padding:5px 8px;vertical-align:middle}'+
+    'tbody tr:nth-child(even){background:#f6f9f9}'+
+    'tbody tr{page-break-inside:avoid}'+
+    '.tf{width:56px}.tf img{width:48px;height:48px;object-fit:cover;border-radius:4px;background:#f4f6f5;display:block}'+
+    '.tc{font-weight:700;color:#333;white-space:nowrap}'+
+    '.tn{font-weight:600}'+
+    '.tu{text-align:right;color:#15803D;font-weight:700;white-space:nowrap}'+
+    '.tp{text-align:right;white-space:nowrap}'+
+    '.tp .a{display:block;font-size:10px;color:#999;text-decoration:line-through}'+
+    '.tp .ah{font-size:13px;font-weight:800;color:#0E7C8B}'+
+    '.td{text-align:center}'+
+    '.td .d{font-size:10px;font-weight:700;color:#fff;background:#DC2626;border-radius:4px;padding:1px 5px}'+
+    '.td .nd{color:#bbb}'+
+    '@media print{.pr-btn{display:none}}'+
+    '</style>';
+  const scr='<script>function ferr(i){i.onerror=null;i.src='+JSON.stringify(IMG_GENERICA)+';}'+
+    'window.addEventListener("load",function(){setTimeout(function(){window.print();},700);});<\/script>';
+  const html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Liquidacion Decora '+fecha+'</title>'+est+'</head><body>'+
+    '<div class="hd"><h1>Liquidación Decora</h1><div class="m">'+esc(almSel)+'<br>'+lista.length+' productos · '+fecha+'</div></div>'+
+    '<button class="pr-btn" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>'+
+    '<table><thead><tr>'+
+      '<th class="thf">Foto</th><th class="thc">Código</th><th class="thn">Descripción</th>'+
+      '<th class="thu">Und.</th><th class="thp">Precio</th><th class="thd">Dcto</th>'+
+    '</tr></thead><tbody>'+filas+'</tbody></table>'+scr+'</body></html>';
+  const win=window.open('','_blank');
+  if(!win){ alert('Tu navegador bloqueó la ventana. Permite las ventanas emergentes para descargar el PDF.'); return; }
+  win.document.write(html); win.document.close();
+}
 
 function exportarExcel(){
   if(typeof XLSX==='undefined'){ alert('El módulo de Excel aún se está cargando, intenta de nuevo en unos segundos.'); return; }
