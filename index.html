@@ -16,7 +16,7 @@
   const GID_INVENTARIO = GID_INV_ACTUAL || GID_INV_PREV;
   const GID_INV_PREV_USE = (GID_INV_ACTUAL && GID_INV_PREV && GID_INV_ACTUAL!==GID_INV_PREV) ? GID_INV_PREV : "";
   const GID_FOTOS      = "0";
-  const BASES = [ {gid:"2071290547", mes:"marzo"}, {gid:"338424457", mes:"junio"}, {gid:"1556794226", mes:"agosto"} ];  // hojas Base por ola
+  const BASES = [ {gid:"2071290547", ola:1, mes:"marzo"}, {gid:"338424457", ola:2, mes:"junio"}, {gid:"1556794226", ola:3, mes:"agosto"}, {gid:"647031872", ola:4, mes:"septiembre"} ];  // hojas Base por ola
   const COL_MES = "Mes liquidacion";   // columna en Liquidación 60% que dice cuándo entró cada producto (Marzo/Junio)
   const COL_LISTA     = "Lista Costa 1";
   const COL_PRECIO    = "Oferta Costa 1";
@@ -485,11 +485,11 @@ function restaurarEstado(){
   }catch(e){}
 }
 
-function olaRank(mes){ const m=String(mes||''); if(!m) return -1;
-  const abbr={mar:'marzo',mzo:'marzo',jun:'junio',ago:'agosto',agt:'agosto'};
-  for(var i=0;i<BASES.length;i++){ const k=BASES[i].mes; if(m===k||m.indexOf(k)>-1) return i; }
-  for(var j=0;j<BASES.length;j++){ const k2=BASES[j].mes; for(const a in abbr){ if(abbr[a]===k2 && m.indexOf(a)>-1) return j; } }
-  return -1; }
+function matchOla(v, b){ const m=normaliza(v).replace(/\s+/g,' ').trim(); if(!m) return false;
+  if(b.mes && m.indexOf(b.mes)>-1) return true;   // dice el mes: marzo/junio/agosto/septiembre
+  const n=String(b.ola); return (m==='ola '+n || m==='ola'+n || m===n); }  // o dice "Ola N" / "N"
+function olaRank(mes){ for(var i=0;i<BASES.length;i++){ if(matchOla(mes, BASES[i])) return i; } return -1; }
+function labelOla(key){ for(var i=0;i<BASES.length;i++){ if(BASES[i].mes===key) return 'Ola '+BASES[i].ola; } return capMes(key); }
 function cmpNuevo(a,b){ const inv=p=>invVisible(p).total; return (olaRank(b.mes)-olaRank(a.mes))||(inv(b)-inv(a)); }
 function filtrar(){
   const q=document.getElementById('buscar').value.trim();
@@ -607,11 +607,11 @@ function pintarSeguimiento(){
   // Selector de olas (unidades base + % evacuación por ola)
   let allBase=0,allEvac=0; OLAS_INFO.forEach(o=>{allBase+=o.base;allEvac+=o.evac;}); const allPct=allBase>0?Math.round(allEvac/allBase*100):0;
   let pills='<button class="ola-tab'+(segOla==='todas'?' on':'')+'" onclick="selOla(\'todas\')"><span class="ot-lab">Todas</span><span class="ot-sub">'+miles(allBase)+' u \u00b7 '+allPct+'%</span></button>';
-  OLAS_INFO.forEach(function(o){ pills+='<button class="ola-tab'+(segOla===o.mes?' on':'')+'" onclick="selOla(\''+o.mes+'\')"><span class="ot-lab">'+esc(capMes(o.mes))+'</span><span class="ot-sub">'+miles(o.base)+' u \u00b7 '+o.pct+'%</span></button>'; });
+  OLAS_INFO.forEach(function(o){ pills+='<button class="ola-tab'+(segOla===o.mes?' on':'')+'" onclick="selOla(\''+o.mes+'\')"><span class="ot-lab">'+esc(o.label)+'</span><span class="ot-sub">'+miles(o.base)+' u \u00b7 '+o.pct+'%</span></button>'; });
   const kpi4 = HAS_PREV?('<div class="seg-kpi"><b>'+miles(tVend)+'</b><span>Vendidas \u00faltima semana</span></div>'):('<div class="seg-kpi"><b>'+miles(tAct)+'</b><span>Inventario actual</span></div>');
   let html='<div class="seg-hero">'+
     '<div class="seg-hero-top">'+
-      '<div class="seg-hero-title"><h2>Avance de evacuaci\u00f3n</h2><p>Corte '+esc(LAB_ACT)+' \u00b7 '+(segOla==='todas'?'todas las olas':('ola '+esc(capMes(segOla))))+'</p></div>'+
+      '<div class="seg-hero-title"><h2>Avance de evacuaci\u00f3n</h2><p>Corte '+esc(LAB_ACT)+' \u00b7 '+(segOla==='todas'?'todas las olas':esc(labelOla(segOla)))+'</p></div>'+
       '<div class="ola-tabs">'+pills+'</div>'+
     '</div>'+
     '<div class="seg-kpis">'+
@@ -699,7 +699,7 @@ function cargar(){
     // BASE por tienda y (tienda, sublínea). La hoja Base DEFINE qué productos se siguen y desde qué punto.
     INVBASE={}; INVBASE_SUB={}; INVBASE_O={}; INVBASE_SUB_O={}; const baseCod={}; const codOla={}; const vistoBase={}; let baseRows=0;
     bases.forEach(function(bt,bi){ const mesBase=BASES[bi].mes; bt.rows.forEach(r=>{ const c=codigo(bt.code?r[bt.code]:Object.values(r)[0]); if(!c||!codSet[c]) return;
-      const mesC=codMes[c]||''; if(mesC && mesC!==mesBase) return;
+      const mesC=codMes[c]||''; if(mesC && !matchOla(mesC, BASES[bi])) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
       if(t){ const k=c+'|'+t; if(vistoBase[k]) return; vistoBase[k]=1; const s=codSub[c]||'(Sin sublínea)';
@@ -720,7 +720,7 @@ function cargar(){
       if(t){ INVPREV[t]=(INVPREV[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVPREV_SUB[t]=INVPREV_SUB[t]||{}); INVPREV_SUB[t][s]=(INVPREV_SUB[t][s]||0)+q;
         const ol=codOla[c]; if(ol){ (INVPREV_O[ol]=INVPREV_O[ol]||{}); INVPREV_O[ol][t]=(INVPREV_O[ol][t]||0)+q; (INVPREV_SUB_O[ol]=INVPREV_SUB_O[ol]||{}); (INVPREV_SUB_O[ol][t]=INVPREV_SUB_O[ol][t]||{}); INVPREV_SUB_O[ol][t][s]=(INVPREV_SUB_O[ol][t][s]||0)+q; } prevRows++; } }); }
     HAS_PREV = prevRows>0;
-    OLAS_INFO=[]; BASES.forEach(function(b){ const mes=b.mes, bd=INVBASE_O[mes]; if(!bd) return; let bb=0,aa=0,pp=0; Object.keys(bd).forEach(t=>bb+=bd[t]); const ad=INVACT_O[mes]||{}; Object.keys(ad).forEach(t=>aa+=ad[t]); const pd=INVPREV_O[mes]||{}; Object.keys(pd).forEach(t=>pp+=pd[t]); if(bb>0){ OLAS_INFO.push({mes:mes,base:bb,act:aa,evac:Math.max(0,bb-aa),pct:Math.round(Math.max(0,bb-aa)/bb*100),vend:(pp-aa)}); } });
+    OLAS_INFO=[]; BASES.forEach(function(b){ const mes=b.mes, bd=INVBASE_O[mes]; if(!bd) return; let bb=0,aa=0,pp=0; Object.keys(bd).forEach(t=>bb+=bd[t]); const ad=INVACT_O[mes]||{}; Object.keys(ad).forEach(t=>aa+=ad[t]); const pd=INVPREV_O[mes]||{}; Object.keys(pd).forEach(t=>pp+=pd[t]); if(bb>0){ OLAS_INFO.push({mes:mes,label:'Ola '+b.ola,ola:b.ola,base:bb,act:aa,evac:Math.max(0,bb-aa),pct:Math.round(Math.max(0,bb-aa)/bb*100),vend:(pp-aa)}); } });
     if(segOla!=='todas' && !OLAS_INFO.some(function(o){return o.mes===segOla;})) segOla='todas';
 
     if(TODOS.length===0){ document.getElementById('estado').innerHTML='No se pudieron leer los productos. Verifica que la hoja esté compartida como "Cualquiera con el enlace → Lector".'; return; }
