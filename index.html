@@ -733,7 +733,8 @@ function cargar(){
     inv.rows.forEach(r=>{ const c=codigo(inv.code?r[inv.code]:Object.values(r)[0]); if(!c) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
-      if(!mInv[c]) mInv[c]={total:0,tiendas:{}};
+      if(!mInv[c]) mInv[c]={total:0,tiendas:{},nombre:''};
+      if(!mInv[c].nombre){ const nb=campo(r,'Texto breve','Texto Breve','Descripcion','Descripción','Denominacion','Denominación','Nombre del producto','Nombre producto','Nombre'); if(nb) mInv[c].nombre=nb; }
       mInv[c].total+=q; if(t){ mInv[c].tiendas[t]=(mInv[c].tiendas[t]||0)+q; setAlm.add(t); } });
     ALMACENES=[...setAlm].sort();
 
@@ -744,7 +745,7 @@ function cargar(){
       if(!mes) return; // sin Mes de liquidación => NO está en liquidación: no se muestra aunque tenga inventario
       vistos[c]=1;
       const pr=mPrec[c]||{},fo=mFoto[c]||{},iv=mInv[c]||{total:0,tiendas:{}};
-      const nombre=fo.nombre||pr.nombre||campo(r,'NOMBRE DEL PRODUCTO','Nombre del producto','Nombre')||c;
+      const nombre=iv.nombre||pr.nombre||fo.nombre||campo(r,'NOMBRE DEL PRODUCTO','Nombre del producto','Nombre')||c;
       const sublinea=campo(r,COL_SUBLINEA,'Sublinea','Sublínea','Sub linea'); if(sublinea) setSub.add(sublinea);
       const tags=tagsDe(r); tags.forEach(t=>setTag.add(t));
       const ahora=pr.precio||0,dcto=pr.dcto||0;
