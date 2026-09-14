@@ -342,6 +342,9 @@ function descPct(d){ if(d>0&&d<=1) return Math.round(d*100); return Math.round(d
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function arg(s){ return esc(String(s==null?'':s).replace(/'/g,"\\'")); }
 function normaliza(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+const TIENDAS_OK = ["ALMACEN SANTA MARTA","ALMACEN SAN FELIPE","ALMACEN MEDELLIN","ALMACEN JAMAR NORTE BOGOTA","ALMACEN EL EDEN","JAMAR CRA 30","ALMACEN MONTERIA","ALMACEN JAMAR NORTE","ALMACEN VALLEDUPAR","ALMACEN PRINCIPAL","ALMACEN LA PLAZUELA","ALMACEN CUATRO VIENTOS","ALMACEN SINCELEJO","ALMACEN RIOHACHA","ALMACEN LA FLORIDA","ALMACEN METROPOLITANO","ALMACEN HIPER JAMAR","ALMACEN BUCARAMANGA","ALMACEN LOS MOLINOS","ALMACEN LAS AMERICAS","ALMACEN FABRICATO","CENDIS GALAPA"];
+const _TSET = new Set(TIENDAS_OK.map(function(x){ return normaliza(x).replace(/\s+/g,' ').trim(); }));
+function tiendaOK(t){ if(!t) return false; return _TSET.has(normaliza(t).replace(/\s+/g,' ').trim()); }
 function singular(w){ if(w.length>4 && /es$/.test(w)) return w.slice(0,-2); if(w.length>3 && /s$/.test(w)) return w.slice(0,-1); return w; }
 function textoBusq(p){ return normaliza(p.nombre+' '+p.codigo+' '+p.sublinea+' '+p.tags.join(' ')).split(/\s+/).map(singular).join(' '); }
 function coincide(p,q){ if(!q) return true; const toks=normaliza(q).split(/\s+/).filter(Boolean).map(singular); return toks.every(t=>p.busq.indexOf(t)>=0); }
@@ -735,7 +738,7 @@ function cargar(){
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
       if(!mInv[c]) mInv[c]={total:0,tiendas:{},nombre:''};
       if(!mInv[c].nombre){ const nb=campo(r,'Texto breve','Texto Breve','Descripcion','Descripción','Denominacion','Denominación','Nombre del producto','Nombre producto','Nombre'); if(nb) mInv[c].nombre=nb; }
-      mInv[c].total+=q; if(t){ mInv[c].tiendas[t]=(mInv[c].tiendas[t]||0)+q; setAlm.add(t); } });
+      if(t && tiendaOK(t)){ mInv[c].total+=q; mInv[c].tiendas[t]=(mInv[c].tiendas[t]||0)+q; setAlm.add(t); } });
     ALMACENES=[...setAlm].sort();
 
     const setSub=new Set(), setTag=new Set(), vistos={};
@@ -763,7 +766,7 @@ function cargar(){
       const mesC=codMes[c]||''; if(mesC && !matchOla(mesC, BASES[bi])) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
-      if(t){ const k=c+'|'+t; if(vistoBase[k]) return; vistoBase[k]=1; const s=codSub[c]||'(Sin sublínea)';
+      if(t && tiendaOK(t)){ const k=c+'|'+t; if(vistoBase[k]) return; vistoBase[k]=1; const s=codSub[c]||'(Sin sublínea)';
         INVBASE[t]=(INVBASE[t]||0)+q; (INVBASE_SUB[t]=INVBASE_SUB[t]||{}); INVBASE_SUB[t][s]=(INVBASE_SUB[t][s]||0)+q;
         (INVBASE_O[mesBase]=INVBASE_O[mesBase]||{}); INVBASE_O[mesBase][t]=(INVBASE_O[mesBase][t]||0)+q;
         (INVBASE_SUB_O[mesBase]=INVBASE_SUB_O[mesBase]||{}); (INVBASE_SUB_O[mesBase][t]=INVBASE_SUB_O[mesBase][t]||{}); INVBASE_SUB_O[mesBase][t][s]=(INVBASE_SUB_O[mesBase][t][s]||0)+q;
@@ -778,7 +781,7 @@ function cargar(){
     if(GID_INV_PREV_USE && invPrevTab){ invPrevTab.rows.forEach(r=>{ const c=codigo(invPrevTab.code?r[invPrevTab.code]:Object.values(r)[0]); if(!c||!baseCod[c]) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
-      if(t){ INVPREV[t]=(INVPREV[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVPREV_SUB[t]=INVPREV_SUB[t]||{}); INVPREV_SUB[t][s]=(INVPREV_SUB[t][s]||0)+q;
+      if(t && tiendaOK(t)){ INVPREV[t]=(INVPREV[t]||0)+q; const s=codSub[c]||'(Sin sublínea)'; (INVPREV_SUB[t]=INVPREV_SUB[t]||{}); INVPREV_SUB[t][s]=(INVPREV_SUB[t][s]||0)+q;
         const ol=codOla[c]; if(ol){ (INVPREV_O[ol]=INVPREV_O[ol]||{}); INVPREV_O[ol][t]=(INVPREV_O[ol][t]||0)+q; (INVPREV_SUB_O[ol]=INVPREV_SUB_O[ol]||{}); (INVPREV_SUB_O[ol][t]=INVPREV_SUB_O[ol][t]||{}); INVPREV_SUB_O[ol][t][s]=(INVPREV_SUB_O[ol][t][s]||0)+q; } prevRows++; } }); }
     HAS_PREV = prevRows>0;
     OLAS_INFO=[]; BASES.forEach(function(b){ const mes=b.mes, bd=INVBASE_O[mes]; if(!bd) return; let bb=0,aa=0,pp=0; Object.keys(bd).forEach(t=>bb+=bd[t]); const ad=INVACT_O[mes]||{}; Object.keys(ad).forEach(t=>aa+=ad[t]); const pd=INVPREV_O[mes]||{}; Object.keys(pd).forEach(t=>pp+=pd[t]); if(bb>0){ OLAS_INFO.push({mes:mes,label:'Ola '+b.ola,ola:b.ola,base:bb,act:aa,evac:Math.max(0,bb-aa),pct:Math.round(Math.max(0,bb-aa)/bb*100),vend:(pp-aa)}); } });
