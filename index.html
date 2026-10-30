@@ -305,6 +305,18 @@
           <div class="pop-acc"><button onclick="limpiarMS()">Limpiar</button><button class="prim" onclick="cerrarPops()">Listo</button></div>
         </div>
       </div>
+      <div class="chip-wrap">
+        <button class="chip" id="chipDcto" onclick="abrirChip(event,'dcto')">Descuento <span class="chip-n" id="nDcto"></span> ▾</button>
+        <div class="pop" id="popDcto" hidden onclick="event.stopPropagation()">
+          <div class="pop-titulo">Descuento</div>
+          <div class="checklist" id="dctoLista">
+            <label><input type="checkbox" value="30" onchange="onCheckDcto(this.value,this.checked)">30% <span style="color:var(--muted);font-size:.74rem">(hasta 35%)</span></label>
+            <label><input type="checkbox" value="50" onchange="onCheckDcto(this.value,this.checked)">50% <span style="color:var(--muted);font-size:.74rem">(36% a 55%)</span></label>
+            <label><input type="checkbox" value="70" onchange="onCheckDcto(this.value,this.checked)">70% <span style="color:var(--muted);font-size:.74rem">(más de 55%)</span></label>
+          </div>
+          <div class="pop-acc"><button onclick="limpiarDcto()">Limpiar</button><button class="prim" onclick="cerrarPops()">Listo</button></div>
+        </div>
+      </div>
       <select id="orden" class="tb-sel" onchange="cambiarOrden(this.value)">
         <option value="nuevo" selected>Novedad: más nuevo primero</option>
         <option value="">Ordenar por… (por defecto: novedad)</option>
@@ -342,7 +354,7 @@
 <footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v5 · olas y novedades</b></footer>
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
-let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set();
+let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set(), SELDCTO=new Set();
 let SELPROD=new Set();
 let seccion='seguimiento', pagina=1, orden='nuevo';
 let segCol='act', segDir='desc', PCT_GEN=0;
@@ -470,17 +482,18 @@ function compartirTarjeta(e,btn){
 }
 
 // ---- chips ----
-function setBack(){ const open=['popTag','popSub','popAlm'].some(id=>!document.getElementById(id).hidden); document.getElementById('popBack').hidden=!open; }
-function abrirChip(e,which){ e.stopPropagation(); const m={tag:'popTag',sub:'popSub',alm:'popAlm'}; Object.values(m).forEach(id=>{ if(id!==m[which]) document.getElementById(id).hidden=true; }); const pop=document.getElementById(m[which]); pop.hidden=!pop.hidden; setBack(); }
-function cerrarPops(){ ['popTag','popSub','popAlm'].forEach(id=>document.getElementById(id).hidden=true); setBack(); }
+function setBack(){ const open=['popTag','popSub','popAlm','popDcto'].some(id=>!document.getElementById(id).hidden); document.getElementById('popBack').hidden=!open; }
+function abrirChip(e,which){ e.stopPropagation(); const m={tag:'popTag',sub:'popSub',alm:'popAlm',dcto:'popDcto'}; Object.values(m).forEach(id=>{ if(id!==m[which]) document.getElementById(id).hidden=true; }); const pop=document.getElementById(m[which]); pop.hidden=!pop.hidden; setBack(); }
+function cerrarPops(){ ['popTag','popSub','popAlm','popDcto'].forEach(id=>document.getElementById(id).hidden=true); setBack(); }
 function updateChips(){
   const set=(chip,nEl,n)=>{ document.getElementById(nEl).textContent=n; document.getElementById(chip).classList.toggle('activo',n>0); };
-  set('chipTag','nTag',SELTAG.size); set('chipSub','nSub',SELSUB.size); set('chipAlm','nAlm',SELEC.size);
+  set('chipTag','nTag',SELTAG.size); set('chipSub','nSub',SELSUB.size); set('chipAlm','nAlm',SELEC.size); set('chipDcto','nDcto',SELDCTO.size);
 }
 function syncChecks(){
   document.querySelectorAll('#msLista input').forEach(c=>c.checked=SELEC.has(c.value));
   document.querySelectorAll('#subLista input').forEach(c=>c.checked=SELSUB.has(c.value));
   document.querySelectorAll('#tagLista input').forEach(c=>c.checked=SELTAG.has(c.value));
+  document.querySelectorAll('#dctoLista input').forEach(c=>c.checked=SELDCTO.has(c.value));
 }
 function mkList(cont,arr,fn){ document.getElementById(cont).innerHTML=arr.map(v=>'<label><input type="checkbox" value="'+esc(v)+'" onchange="'+fn+'(this.value,this.checked)">'+esc(v)+'</label>').join(''); }
 function filtList(cont,inp){ const q=document.getElementById(inp).value.toLowerCase().trim(); document.querySelectorAll('#'+cont+' label').forEach(l=>{ l.style.display=l.textContent.toLowerCase().includes(q)?'flex':'none'; }); }
@@ -493,14 +506,19 @@ function filtrarSub(){ filtList('subLista','subSearch'); }
 function onCheckTag(t,c){ if(c)SELTAG.add(t); else SELTAG.delete(t); updateChips(); pagina=1; pintar(); }
 function limpiarTag(){ SELTAG.clear(); document.querySelectorAll('#tagLista input').forEach(c=>c.checked=false); updateChips(); pagina=1; pintar(); }
 function filtrarTag(){ filtList('tagLista','tagSearch'); }
-function limpiarTodo(){ SELEC.clear(); SELSUB.clear(); SELTAG.clear(); syncChecks(); updateChips(); pagina=1; pintar(); }
+// Rangos de descuento: 30% (hasta 35), 50% (36 a 55), 70% (más de 55)
+function rangoDcto(d){ if(!d||d<=0) return ''; if(d<=35) return '30'; if(d<=55) return '50'; return '70'; }
+function onCheckDcto(v,c){ if(c)SELDCTO.add(v); else SELDCTO.delete(v); updateChips(); pagina=1; pintar(); }
+function limpiarDcto(){ SELDCTO.clear(); document.querySelectorAll('#dctoLista input').forEach(c=>c.checked=false); updateChips(); pagina=1; pintar(); }
+function limpiarTodo(){ SELEC.clear(); SELSUB.clear(); SELTAG.clear(); SELDCTO.clear(); syncChecks(); updateChips(); pagina=1; pintar(); }
 
 function avisoFiltro(){
   const av=document.getElementById('filtroAviso');
   const partes=[];
   if(SELEC.size) partes.push([...SELEC].join(', '));
   if(SELSUB.size) partes.push([...SELSUB].join(', '));
-  if((SELEC.size||SELSUB.size) && seccion==='productos'){
+  if(SELDCTO.size) partes.push('Dcto '+[...SELDCTO].sort().join('% / ')+'%');
+  if((SELEC.size||SELSUB.size||SELDCTO.size) && seccion==='productos'){
     av.classList.add('on');
     av.innerHTML='Filtrando por '+esc(partes.join(' · '))+' <button onclick="limpiarTodo()">Quitar filtros</button>';
   } else { av.classList.remove('on'); av.innerHTML=''; }
@@ -590,13 +608,13 @@ function exportarExcel(){
 function guardarEstado(){
   try{ localStorage.setItem('decora_estado', JSON.stringify({
     seccion, orden, pagina, q: document.getElementById('buscar').value,
-    sel:[...SELEC], sub:[...SELSUB], tag:[...SELTAG]
+    sel:[...SELEC], sub:[...SELSUB], tag:[...SELTAG], dcto:[...SELDCTO]
   })); }catch(e){}
 }
 function restaurarEstado(){
   try{
     const s=JSON.parse(localStorage.getItem('decora_estado')||'null'); if(!s) return;
-    SELEC=new Set(s.sel||[]); SELSUB=new Set(s.sub||[]); SELTAG=new Set(s.tag||[]);
+    SELEC=new Set(s.sel||[]); SELSUB=new Set(s.sub||[]); SELTAG=new Set(s.tag||[]); SELDCTO=new Set(s.dcto||[]);
     orden=s.orden||''; pagina=s.pagina||1;
     const o=document.getElementById('orden'); if(o) o.value=orden;
     document.getElementById('buscar').value=s.q||'';
@@ -616,6 +634,7 @@ function filtrar(){
   let lista=TODOS.slice();
   if(SELTAG.size) lista=lista.filter(p=>p.tags.some(t=>SELTAG.has(t)));
   if(SELSUB.size) lista=lista.filter(p=>SELSUB.has(p.sublinea));
+  if(SELDCTO.size) lista=lista.filter(p=>SELDCTO.has(rangoDcto(p.desc)));
   if(sel.length) lista=lista.filter(p=>sel.some(t=>(p.tiendas[t]||0)>0));
   if(q) lista=lista.filter(p=>coincide(p,q));
   const inv=p=>invVisible(p).total;
