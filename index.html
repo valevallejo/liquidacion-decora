@@ -16,7 +16,7 @@
   const GID_INVENTARIO = GID_INV_ACTUAL || GID_INV_PREV;
   const GID_INV_PREV_USE = (GID_INV_ACTUAL && GID_INV_PREV && GID_INV_ACTUAL!==GID_INV_PREV) ? GID_INV_PREV : "";
   const GID_FOTOS      = "0";
-  const BASES = [ {gid:"2071290547", ola:1, mes:"marzo"}, {gid:"338424457", ola:2, mes:"junio"}, {gid:"1556794226", ola:3, mes:"agosto"}, {gid:"647031872", ola:4, mes:"septiembre"}, {gid:"409772707", ola:5, mes:"octubre"} ];  // hojas Base por ola
+  const BASES = [ {gid:"2071290547", ola:1, mes:"marzo"}, {gid:"338424457", ola:2, mes:"junio"}, {gid:"1556794226", ola:3, mes:"agosto"}, {gid:"647031872", ola:4, mes:"septiembre"}, {gid:"409772707", ola:5, mes:"octubre"}, {gid:"757919943", ola:6, mes:"noviembre"} ];  // hojas Base por ola
   const COL_MES = "Mes liquidacion";   // columna en Liquidación 60% que dice cuándo entró cada producto (Marzo/Junio)
   const COL_LISTA     = "Lista Costa 1";
   const COL_PRECIO    = "Oferta Costa 1";
@@ -310,8 +310,8 @@
         <div class="pop" id="popDcto" hidden onclick="event.stopPropagation()">
           <div class="pop-titulo">Descuento</div>
           <div class="checklist" id="dctoLista">
-            <label><input type="checkbox" value="30" onchange="onCheckDcto(this.value,this.checked)">30% <span style="color:var(--muted);font-size:.74rem">(hasta 35%)</span></label>
-            <label><input type="checkbox" value="50" onchange="onCheckDcto(this.value,this.checked)">50% <span style="color:var(--muted);font-size:.74rem">(36% a 55%)</span></label>
+            <label><input type="checkbox" value="30" onchange="onCheckDcto(this.value,this.checked)">30% <span style="color:var(--muted);font-size:.74rem">(hasta 39%)</span></label>
+            <label><input type="checkbox" value="50" onchange="onCheckDcto(this.value,this.checked)">50% <span style="color:var(--muted);font-size:.74rem">(40% a 55%)</span></label>
             <label><input type="checkbox" value="70" onchange="onCheckDcto(this.value,this.checked)">70% <span style="color:var(--muted);font-size:.74rem">(más de 55%)</span></label>
           </div>
           <div class="pop-acc"><button onclick="limpiarDcto()">Limpiar</button><button class="prim" onclick="cerrarPops()">Listo</button></div>
@@ -351,7 +351,7 @@
   </nav>
 </div>
 <div class="pop-back" id="popBack" hidden onclick="cerrarPops()"></div>
-<footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v5 · olas y novedades</b></footer>
+<footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v8 · ola 6 (noviembre)</b></footer>
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set(), SELDCTO=new Set();
@@ -506,8 +506,8 @@ function filtrarSub(){ filtList('subLista','subSearch'); }
 function onCheckTag(t,c){ if(c)SELTAG.add(t); else SELTAG.delete(t); updateChips(); pagina=1; pintar(); }
 function limpiarTag(){ SELTAG.clear(); document.querySelectorAll('#tagLista input').forEach(c=>c.checked=false); updateChips(); pagina=1; pintar(); }
 function filtrarTag(){ filtList('tagLista','tagSearch'); }
-// Rangos de descuento: 30% (hasta 35), 50% (36 a 55), 70% (más de 55)
-function rangoDcto(d){ if(!d||d<=0) return ''; if(d<=35) return '30'; if(d<=55) return '50'; return '70'; }
+// Rangos de descuento: 30% (hasta 39), 50% (40 a 55), 70% (más de 55)
+function rangoDcto(d){ if(!d||d<=0) return ''; if(d<=39) return '30'; if(d<=55) return '50'; return '70'; }
 function onCheckDcto(v,c){ if(c)SELDCTO.add(v); else SELDCTO.delete(v); updateChips(); pagina=1; pintar(); }
 function limpiarDcto(){ SELDCTO.clear(); document.querySelectorAll('#dctoLista input').forEach(c=>c.checked=false); updateChips(); pagina=1; pintar(); }
 function limpiarTodo(){ SELEC.clear(); SELSUB.clear(); SELTAG.clear(); SELDCTO.clear(); syncChecks(); updateChips(); pagina=1; pintar(); }
@@ -527,18 +527,33 @@ function avisoFiltro(){
 function cambiarOrden(v){ orden=v; pagina=1; pintar(); }
 
 function exportarPDF(){
-  const lista = SELPROD.size ? TODOS.filter(function(p){ return SELPROD.has(p.codigo); }).sort(cmpNuevo) : filtrar();
-  if(!lista.length){ alert('No hay productos para exportar.'); return; }
+  let lista = SELPROD.size ? TODOS.filter(function(p){ return SELPROD.has(p.codigo); }).sort(cmpNuevo) : filtrar();
+  // Solo productos con inventario m\u00ednimo de 1 unidad (en los almacenes seleccionados, o en total si no hay selecci\u00f3n)
+  lista = lista.filter(function(p){ return invVisible(p).total>=1; });
+  // Agrupar por sublínea (A-Z, "Sin sublínea" al final); dentro de cada una se mantiene el orden actual
+  const SIN='Sin sublínea';
+  const gSub=function(p){ return p.sublinea||SIN; };
+  const orig=lista.map(function(p,i){ return {p:p,i:i}; });
+  orig.sort(function(a,b){ const ga=gSub(a.p), gb=gSub(b.p);
+    if(ga!==gb){ if(ga===SIN) return 1; if(gb===SIN) return -1; return ga.localeCompare(gb,'es'); }
+    return a.i-b.i; });
+  lista = orig.map(function(o){ return o.p; });
+  if(!lista.length){ alert('No hay productos con inventario (m\u00ednimo 1 unidad) para exportar.'); return; }
   const almSel = SELEC.size ? [...SELEC].sort().join(', ') : 'Todos los almacenes';
   const f=new Date(); const fecha=('0'+f.getDate()).slice(-2)+'/'+('0'+(f.getMonth()+1)).slice(-2)+'/'+f.getFullYear();
+  let subActual=null;
   const filas = lista.map(function(p){
     const uni=invVisible(p).total;
+    let banda='';
+    if(gSub(p)!==subActual){ subActual=gSub(p);
+      const n=lista.filter(function(x){ return gSub(x)===subActual; }).length;
+      banda='<tr class="sb"><td colspan="6">'+esc(subActual)+' <span>· '+n+' producto'+(n===1?'':'s')+'</span></td></tr>'; }
     const dcto = p.desc? '<span class="d">-'+p.desc+'%</span>' : '<span class="nd">—</span>';
     const antes = p.antes? '<span class="a">'+pesos(p.antes)+'</span>' : '';
-    return '<tr>'+
+    return banda+'<tr>'+
       '<td class="tf"><img src="'+esc(p.foto)+'" onerror="ferr(this)"></td>'+
       '<td class="tc">'+esc(p.codigo)+'</td>'+
-      '<td class="tn">'+esc(p.nombre)+'</td>'+
+      '<td class="tn">'+esc(p.nombre)+'<span class="ts">'+esc(gSub(p))+'</span></td>'+
       '<td class="tu">'+miles(uni)+'</td>'+
       '<td class="tp">'+antes+'<span class="ah">'+(pesos(p.ahora)||'—')+'</span></td>'+
       '<td class="td">'+dcto+'</td>'+
@@ -560,6 +575,7 @@ function exportarPDF(){
     '.tf{width:56px}.tf img{width:48px;height:48px;object-fit:cover;border-radius:4px;background:#f4f6f5;display:block}'+
     '.tc{font-weight:700;color:#333;white-space:nowrap}'+
     '.tn{font-weight:600}'+
+    '.ts{display:block;font-weight:500;font-size:10px;color:#777;margin-top:2px}'+
     '.tu{text-align:right;color:#111;font-weight:700;white-space:nowrap}'+
     '.tp{text-align:right;white-space:nowrap}'+
     '.tp .a{display:block;font-size:10px;color:#999;text-decoration:line-through}'+
@@ -567,6 +583,9 @@ function exportarPDF(){
     '.td{text-align:center}'+
     '.td .d{font-size:11px;font-weight:700;color:#111}'+
     '.td .nd{color:#bbb}'+
+    'tr.sb td{background:#0E7C8B;color:#fff;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.4px;padding:7px 10px;border:1px solid #0E7C8B;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    'tr.sb td span{font-weight:500;opacity:.9;text-transform:none}'+
+    'tr.sb{page-break-after:avoid}'+
     '@media print{.pr-btn{display:none}}'+
     '</style>';
   const scr='<script>function ferr(i){i.onerror=null;i.src='+JSON.stringify(IMG_GENERICA)+';}'+
@@ -819,11 +838,18 @@ function cargar(){
     fotos.rows.forEach(r=>{ const c=codigo(fotos.code?r[fotos.code]:Object.values(r)[0]); if(!c) return;
       mFoto[c]={nombre:campo(r,COL_NOMBRE,'Nombre'),foto:campo(r,COL_FOTO,'Foto','Imagen','Image')}; });
     const mInv={}; const setAlm=new Set();
+    const _lm=function(x){ return String(x).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); };
+    const _ex=/^(nombre 1|tienda|centro|almacen|libre|cantidad|stock|existencias|sublinea|foto|tags|codigo|material$)/;
+    const _pref=['texto breve de material','texto breve','descripcion del material','descripcion material','descripcion','denominacion','nombre del producto','nombre producto','nombre del material','nombre material','nombre'];
+    let colNomInv=null;
+    for(const pf of _pref){ colNomInv=(inv.fields||[]).find(function(f){ return _lm(f)===pf; }); if(colNomInv) break; }
+    if(!colNomInv) colNomInv=(inv.fields||[]).find(function(f){ const l=_lm(f); return !_ex.test(l) && /(texto|descrip|denomin|nombre|producto|articulo)/.test(l); });
+    if(!colNomInv) console.warn('Inventario (GID '+GID_INVENTARIO+'): no se encontr\u00f3 columna de nombre. Columnas:', inv.fields);
     inv.rows.forEach(r=>{ const c=codigo(inv.code?r[inv.code]:Object.values(r)[0]); if(!c) return;
       const q=num(campo(r,COL_CANTIDAD,'Libre utilización','Libre utilizacion','Cantidad','Stock','Existencias'));
       const t=campo(r,COL_TIENDA,'Nombre 1','Tienda','Centro','Almacén','Almacen');
       if(!mInv[c]) mInv[c]={total:0,tiendas:{},nombre:''};
-      if(!mInv[c].nombre){ const nb=campo(r,'Texto breve','Texto Breve','Descripcion','Descripción','Denominacion','Denominación','Nombre del producto','Nombre producto','Nombre'); if(nb) mInv[c].nombre=nb; }
+      if(!mInv[c].nombre && colNomInv){ const nb=String(r[colNomInv]==null?'':r[colNomInv]).trim(); if(nb) mInv[c].nombre=nb; }
       if(t && tiendaOK(t)){ mInv[c].total+=q; mInv[c].tiendas[t]=(mInv[c].tiendas[t]||0)+q; setAlm.add(t); } });
     ALMACENES=[...setAlm].sort();
 
@@ -834,7 +860,7 @@ function cargar(){
       if(!mes) return; // sin Mes de liquidación => NO está en liquidación: no se muestra aunque tenga inventario
       vistos[c]=1;
       const pr=mPrec[c]||{},fo=mFoto[c]||{},iv=mInv[c]||{total:0,tiendas:{}};
-      const nombre=iv.nombre||pr.nombre||fo.nombre||campo(r,'NOMBRE DEL PRODUCTO','Nombre del producto','Nombre')||c;
+      const nombre=iv.nombre||fo.nombre||campo(r,'NOMBRE DEL PRODUCTO','Nombre del producto','Nombre')||pr.nombre||c;
       const sublinea=campo(r,COL_SUBLINEA,'Sublinea','Sublínea','Sub linea'); if(sublinea) setSub.add(sublinea);
       const tags=tagsDe(r); tags.forEach(t=>setTag.add(t));
       const ahora=pr.precio||0,dcto=pr.dcto||0;
