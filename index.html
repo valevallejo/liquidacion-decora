@@ -351,7 +351,7 @@
   </nav>
 </div>
 <div class="pop-back" id="popBack" hidden onclick="cerrarPops()"></div>
-<footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v8 · ola 6 (noviembre)</b></footer>
+<footer>Liquidación Decora · datos en vivo desde Google Sheets · <b>v9 · solo productos con inventario</b></footer>
 <script>
 let TODOS=[], ALMACENES=[], SUBLINEAS=[], ALLTAGS=[];
 let SELEC=new Set(), SELSUB=new Set(), SELTAG=new Set(), SELDCTO=new Set();
@@ -655,6 +655,8 @@ function filtrar(){
   if(SELSUB.size) lista=lista.filter(p=>SELSUB.has(p.sublinea));
   if(SELDCTO.size) lista=lista.filter(p=>SELDCTO.has(rangoDcto(p.desc)));
   if(sel.length) lista=lista.filter(p=>sel.some(t=>(p.tiendas[t]||0)>0));
+  // Solo se muestran productos con inventario (m\u00ednimo 1 unidad; en los almacenes elegidos si hay selecci\u00f3n). Sin stock = ya se agot\u00f3.
+  lista=lista.filter(p=>invVisible(p).total>=1);
   if(q) lista=lista.filter(p=>coincide(p,q));
   const inv=p=>invVisible(p).total;
   const cmp={'nuevo':(a,b)=>(olaRank(b.mes)-olaRank(a.mes))||(inv(b)-inv(a)),'inv-desc':(a,b)=>inv(b)-inv(a),'inv-asc':(a,b)=>inv(a)-inv(b),'precio-desc':(a,b)=>b.ahora-a.ahora,'precio-asc':(a,b)=>a.ahora-b.ahora,'dcto-desc':(a,b)=>b.desc-a.desc}[orden] || cmpNuevo;
